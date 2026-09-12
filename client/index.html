@@ -62,10 +62,10 @@
  
         <div class="hero-proof">
           <div class="avatar-stack">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" class="avatar a1" alt="Volunteer avatar" />
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" class="avatar a2" alt="Volunteer avatar" />
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" class="avatar a3" alt="Volunteer avatar" />
-            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" class="avatar a4" alt="Volunteer avatar" />
+            <span class="avatar a1"></span>
+            <span class="avatar a2"></span>
+            <span class="avatar a3"></span>
+            <span class="avatar a4"></span>
           </div>
           <p>Join 12,000+ volunteers already using the platform</p>
         </div>
@@ -273,7 +273,9 @@
         <div class="stars">★★★★★</div>
         <p class="quote">"Switching to Community Care Portal transformed how we manage volunteers. Everything is in one place — no more scattered spreadsheets or missed updates."</p>
         <div class="testimonial-person">
-          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" class="t-avatar" alt="Priya Sharma" />
+          <div class="t-avatar-default" style="width:38px; height:38px; border-radius:50%; background:var(--green-100); color:var(--green-800); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
           <div>
             <strong>Priya Sharma</strong>
             <span>Program Manager, Seva NGO</span>
@@ -285,7 +287,9 @@
         <div class="stars">★★★★★</div>
         <p class="quote">"Our donation figures became fully transparent right after we started using the automated donation tracking feature."</p>
         <div class="testimonial-person">
-          <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80" class="t-avatar" alt="Rahul Verma" />
+          <div class="t-avatar-default" style="width:38px; height:38px; border-radius:50%; background:var(--green-100); color:var(--green-800); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
           <div>
             <strong>Rahul Verma</strong>
             <span>Founder, Roshan Trust</span>
@@ -297,7 +301,9 @@
         <div class="stars">★★★★★</div>
         <p class="quote">"The event registration module alone saves our team hours of manual work every single week. Highly recommended for any NGO."</p>
         <div class="testimonial-person">
-          <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80" class="t-avatar" alt="Ishaan Kapoor" />
+          <div class="t-avatar-default" style="width:38px; height:38px; border-radius:50%; background:var(--green-100); color:var(--green-800); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
           <div>
             <strong>Ishaan Kapoor</strong>
             <span>Volunteer Coordinator, HelpAge</span>
@@ -399,13 +405,13 @@
     <!-- Role Selector -->
     <div class="role-section" id="roleSection">
       <div class="role-section-label">I WANT TO JOIN AS</div>
-      <div class="role-grid-select">
+      <div class="role-grid-select" style="grid-template-columns: repeat(3, 1fr);">
         <div class="role-card-opt active" id="roleVolunteer" data-role="volunteer">
           <div class="role-icon-wrap">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <h4>Volunteer</h4>
-          <p>Give time &amp; skills</p>
+          <p>Give time</p>
           <div class="role-radio-dot"></div>
         </div>
 
@@ -414,7 +420,16 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg>
           </div>
           <h4>Donor</h4>
-          <p>Fund campaigns</p>
+          <p>Fund causes</p>
+          <div class="role-radio-dot"></div>
+        </div>
+
+        <div class="role-card-opt" id="roleAdmin" data-role="admin">
+          <div class="role-icon-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h4>Admin</h4>
+          <p>Manage all</p>
           <div class="role-radio-dot"></div>
         </div>
       </div>
@@ -673,6 +688,46 @@
       if (score <= 1) strengthText.textContent = 'Weak';
       else if (score <= 2) strengthText.textContent = 'Medium';
       else strengthText.textContent = 'Strong';
+    });
+  }
+
+  // --- Login / Register Form Submission & Navigation ---
+  const authForm = document.getElementById('authForm');
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const activeRoleCard = document.querySelector('.role-card-opt.active');
+      const role = activeRoleCard ? activeRoleCard.getAttribute('data-role') : 'volunteer';
+
+      let userName = '';
+      if (currentMode === 'signup') {
+        const first = (document.getElementById('firstName').value || '').trim();
+        const last = (document.getElementById('lastName').value || '').trim();
+        userName = `${first} ${last}`.trim() || 'User';
+      } else {
+        const email = (document.getElementById('emailAddr').value || '').trim();
+        userName = email ? email.split('@')[0] : 'User';
+      }
+
+      const userData = {
+        name: userName,
+        email: (document.getElementById('emailAddr').value || '').trim(),
+        role: role
+      };
+
+      try {
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+      } catch (err) {}
+
+      // Redirect to respective dashboard with custom name
+      if (role === 'donor') {
+        window.location.href = `donor-dashboard.html?name=${encodeURIComponent(userName)}&role=Donor`;
+      } else if (role === 'admin') {
+        window.location.href = `admin-dashboard.html?name=${encodeURIComponent(userName)}&role=Admin`;
+      } else {
+        window.location.href = `volunteer-dashboard.html?name=${encodeURIComponent(userName)}&role=Volunteer`;
+      }
     });
   }
 </script>
