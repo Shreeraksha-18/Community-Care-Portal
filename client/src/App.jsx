@@ -1,47 +1,45 @@
-import { useState } from 'react';
-import AuthModule from './components/AuthModule';
-import CarePortal from './components/CarePortal';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import AuthModule from './components/AuthModule.jsx';
+import CarePortal from './components/CarePortal.jsx';
+import DonorDashboard from './components/DonorDashboard.jsx';
+import AdminDashboard from './components/AdminDashboard.jsx';
 
-function App() {
-  const [view, setView] = useState('auth'); // 'auth' or 'portal'
+export default function App() {
+  const navigate = useNavigate();
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f7f9fa', padding: '20px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <button
-          onClick={() => setView('auth')}
-          style={{
-            padding: '8px 16px',
-            marginRight: '10px',
-            backgroundColor: view === 'auth' ? '#0f6b3f' : '#e4e7ec',
-            color: view === 'auth' ? '#fff' : '#101828',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Auth Module Component
-        </button>
-        <button
-          onClick={() => setView('portal')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: view === 'portal' ? '#0f6b3f' : '#e4e7ec',
-            color: view === 'portal' ? '#fff' : '#101828',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Care Portal Dashboard
-        </button>
-      </div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f7f9fa' }}>
+      <Routes>
+        {/* Auth Routes */}
+        <Route path="/" element={<AuthModule initialMode="login" />} />
+        <Route path="/login" element={<AuthModule initialMode="login" />} />
+        <Route path="/register" element={<AuthModule initialMode="signup" />} />
 
-      {view === 'auth' ? <AuthModule /> : <CarePortal />}
+        {/* Volunteer / General Portal Routes */}
+        <Route
+          path="/portal/*"
+          element={<CarePortal onBackToHome={() => navigate('/')} />}
+        />
+        <Route
+          path="/volunteer/*"
+          element={<CarePortal onBackToHome={() => navigate('/')} />}
+        />
+
+        {/* Donor Hub Routes */}
+        <Route
+          path="/donor/*"
+          element={<DonorDashboard onBackToHome={() => navigate('/')} />}
+        />
+
+        {/* Admin Console Routes */}
+        <Route
+          path="/admin/*"
+          element={<AdminDashboard onBackToHome={() => navigate('/')} />}
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
-
-export default App;
