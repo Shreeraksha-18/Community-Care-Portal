@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import AuthModule from './components/AuthModule.jsx';
+import LandingPage from './components/LandingPage.jsx';
 import CarePortal from './components/CarePortal.jsx';
 import DonorDashboard from './components/DonorDashboard.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
@@ -10,30 +10,28 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f7f9fa' }}>
       <Routes>
-        {/* Auth Routes */}
-        <Route path="/" element={<AuthModule initialMode="login" />} />
-        <Route path="/login" element={<AuthModule initialMode="login" />} />
-        <Route path="/register" element={<AuthModule initialMode="signup" />} />
+        {/* Landing Page with integrated auth drawer */}
+        <Route path="/" element={<LandingPage />} />
 
         {/* Volunteer / General Portal Routes */}
         <Route
-          path="/portal/*"
+          path="/portal"
           element={<CarePortal onBackToHome={() => navigate('/')} />}
         />
         <Route
-          path="/volunteer/*"
+          path="/volunteer"
           element={<CarePortal onBackToHome={() => navigate('/')} />}
         />
 
         {/* Donor Hub Routes */}
         <Route
-          path="/donor/*"
+          path="/donor"
           element={<DonorDashboard onBackToHome={() => navigate('/')} />}
         />
 
         {/* Admin Console Routes */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={<AdminDashboard onBackToHome={() => navigate('/')} />}
         />
 
