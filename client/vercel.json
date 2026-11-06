@@ -2,9 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/volunteer", "destination": "/app.html" },
+    { "source": "/volunteer/(.*)", "destination": "/app.html" },
+    { "source": "/donor", "destination": "/app.html" },
+    { "source": "/donor/(.*)", "destination": "/app.html" },
+    { "source": "/admin", "destination": "/app.html" },
+    { "source": "/admin/(.*)", "destination": "/app.html" },
+    { "source": "/login", "destination": "/app.html" },
+    { "source": "/register", "destination": "/app.html" },
+    { "source": "/portal/(.*)", "destination": "/app.html" }
   ]
 }
