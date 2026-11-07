@@ -8,17 +8,6 @@
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
   --social-bg: rgba(244, 243, 236, 0.5);
-
-/* Global overflow fix */
-html, body, #root {
-  max-width: 100vw;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-
-*, *::before, *::after {
-  box-sizing: border-box;
-}
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -39,6 +28,15 @@ html, body, #root {
   @media (max-width: 1024px) {
     font-size: 16px;
   }
+}
+
+/* ── Global overflow & box-sizing fix ── */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -66,10 +64,10 @@ body {
 }
 
 #root {
-  width: 1126px;
+  width: 100%;
   max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
+  margin: 0;
+  text-align: left;
   border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
