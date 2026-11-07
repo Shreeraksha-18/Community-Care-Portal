@@ -5,6 +5,8 @@ const registrationSchema = new mongoose.Schema(
     volunteer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     volunteerName: { type: String },
     volunteerEmail: { type: String },
+    volunteerPhone: { type: String },
+    emergencyContact: { type: String },
     event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
     eventTitle: { type: String },
     status: {

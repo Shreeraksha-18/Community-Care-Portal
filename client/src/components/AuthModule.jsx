@@ -53,11 +53,11 @@ export default function AuthModule({ initialMode = 'signup' }) {
       // Navigate to corresponding role dashboard
       const targetRole = userData.role || role;
       if (targetRole === 'donor') {
-        navigate('/donor');
+        navigate('/donor', { replace: true });
       } else if (targetRole === 'admin') {
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       } else {
-        navigate('/volunteer');
+        navigate('/volunteer', { replace: true });
       }
     } catch (err) {
       console.error('Authentication Error:', err);
@@ -70,9 +70,9 @@ export default function AuthModule({ initialMode = 'signup' }) {
           token: 'offline_demo_token'
         };
         localStorage.setItem('currentUser', JSON.stringify(fallbackUser));
-        if (role === 'donor') navigate('/donor');
-        else if (role === 'admin') navigate('/admin');
-        else navigate('/volunteer');
+        if (role === 'donor') navigate('/donor', { replace: true });
+        else if (role === 'admin') navigate('/admin', { replace: true });
+        else navigate('/volunteer', { replace: true });
       } else {
         setErrorMsg(err.response?.data?.message || 'Authentication failed. Please check credentials.');
       }

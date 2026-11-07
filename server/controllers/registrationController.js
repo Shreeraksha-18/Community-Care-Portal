@@ -7,7 +7,7 @@ import Activity from '../models/Activity.js';
 // @access Private (volunteer)
 export const registerForEvent = async (req, res) => {
   try {
-    const { eventId } = req.body;
+    const { eventId, volunteerPhone, emergencyContact, notes } = req.body;
     if (!eventId) return res.status(400).json({ success: false, message: 'eventId is required.' });
 
     const event = await Event.findById(eventId);
@@ -21,9 +21,12 @@ export const registerForEvent = async (req, res) => {
       volunteer: req.user._id,
       volunteerName: req.user.name,
       volunteerEmail: req.user.email,
+      volunteerPhone: volunteerPhone || req.user.phone || '',
+      emergencyContact: emergencyContact || '',
       event: eventId,
       eventTitle: event.title,
-      status: 'Pending'
+      status: 'Pending',
+      notes: notes || ''
     });
 
     res.status(201).json({ success: true, data: reg });
@@ -72,6 +75,17 @@ export const approveRegistration = async (req, res) => {
     reg.approvedBy = req.user._id;
     if (notes) reg.notes = notes;
     await reg.save();
+
+    // Sync with Event.volunteersRegistered
+    if (status === 'Approved') {
+      await Event.findByIdAndUpdate(reg.event, {
+        $addToSet: { volunteersRegistered: reg.volunteer }
+      });
+    } else if (status === 'Rejected') {
+      await Event.findByIdAndUpdate(reg.event, {
+        $pull: { volunteersRegistered: reg.volunteer }
+      });
+    }
 
     res.json({ success: true, data: reg });
   } catch (err) {

@@ -17,6 +17,18 @@ export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('currentUser'));
+      if (u) {
+        const userRole = u.role;
+        if (userRole === 'donor') navigate('/donor', { replace: true });
+        else if (userRole === 'admin') navigate('/admin', { replace: true });
+        else navigate('/volunteer', { replace: true });
+      }
+    } catch (e) {}
+  }, [navigate]);
+
+  useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 12);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
@@ -69,9 +81,9 @@ export default function LandingPage() {
       if (!res.ok || !data.success) throw new Error(data.message || 'Authentication failed');
       localStorage.setItem('currentUser', JSON.stringify(data.data));
       const userRole = data.data.role || role;
-      if (userRole === 'donor') navigate('/donor');
-      else if (userRole === 'admin') navigate('/admin');
-      else navigate('/volunteer');
+      if (userRole === 'donor') navigate('/donor', { replace: true });
+      else if (userRole === 'admin') navigate('/admin', { replace: true });
+      else navigate('/volunteer', { replace: true });
     } catch (err) {
       setErrorMsg(err.message || 'Something went wrong. Please try again.');
     } finally {

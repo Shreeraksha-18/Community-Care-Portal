@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
@@ -21,9 +21,9 @@ const C = {
 };
 
 // ── SVG Icon ────────────────────────────────────────────────────
-function Icon({ d, size = 16, color = 'currentColor', strokeWidth = 2 }) {
+function Icon({ d, size = 16, color = 'currentColor', strokeWidth = 2, fill = 'none' }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p}/>) : <path d={d}/>}
     </svg>
   );
@@ -62,9 +62,62 @@ const NAV = [
 ];
 
 const DEFAULT_EVENTS = [
-  { _id: '1', title: 'City Food Drive', category: 'Community', date: '12', month: 'JUL', location: 'City Center, Mumbai', status: 'Registered' },
-  { _id: '2', title: 'Coastal Cleanup', category: 'Environment', date: '19', month: 'JUL', location: 'Juhu Beach, Mumbai', status: 'Registered' },
-  { _id: '3', title: 'School Supplies Drive', category: 'Education', date: '26', month: 'JUL', location: 'Dharavi School', status: 'Pending' },
+  {
+    _id: '1',
+    title: 'Food Drive at City Center',
+    category: 'Community',
+    date: '12',
+    month: 'JUL',
+    year: '2026',
+    fullDate: 'July 12, 2026',
+    location: 'City Center, Mumbai',
+    spotsTotal: 30,
+    spotsLeft: 24,
+    image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80',
+    description: 'Distribute hot meals, dry rations, and care packages to underprivileged families.'
+  },
+  {
+    _id: '2',
+    title: 'Coastal Cleanup Campaign',
+    category: 'Environment',
+    date: '19',
+    month: 'JUL',
+    year: '2026',
+    fullDate: 'July 19, 2026',
+    location: 'Juhu Beach, Mumbai',
+    spotsTotal: 40,
+    spotsLeft: 18,
+    image: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=600&q=80',
+    description: 'Join volunteers to clean plastic waste along the coastline and protect marine life.'
+  },
+  {
+    _id: '3',
+    title: 'School Supplies Drive',
+    category: 'Education',
+    date: '26',
+    month: 'JUL',
+    year: '2026',
+    fullDate: 'July 26, 2026',
+    location: 'Dharavi School, Mumbai',
+    spotsTotal: 25,
+    spotsLeft: 10,
+    image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80',
+    description: 'Provide bags, textbooks, and stationery kits to children for the upcoming academic year.'
+  },
+  {
+    _id: '4',
+    title: 'Community Tree Plantation Drive',
+    category: 'Environment',
+    date: '02',
+    month: 'AUG',
+    year: '2026',
+    fullDate: 'August 2, 2026',
+    location: 'Sanjay Gandhi National Park',
+    spotsTotal: 50,
+    spotsLeft: 35,
+    image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80',
+    description: 'Help plant indigenous saplings and restore green cover in urban fringes.'
+  }
 ];
 
 const DEFAULT_ACTIVITIES = [
@@ -82,10 +135,66 @@ const MONTHLY_HOURS = [
 export default function CarePortal({ onBackToHome }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('dashboard');
+  const tabRef = useRef(tab);
   const [userName, setUserName] = useState('Priya Sharma');
   const [userEmail, setUserEmail] = useState('priya@care.org');
   const [events, setEvents] = useState(DEFAULT_EVENTS);
   const [loading, setLoading] = useState(false);
+  const [myRegistrations, setMyRegistrations] = useState([]);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const registerModalRef = useRef(registerModalOpen);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [regFormData, setRegFormData] = useState({
+    name: 'Priya Sharma',
+    email: 'priya@care.org',
+    phone: '',
+    emergencyContact: '',
+    notes: ''
+  });
+  const [regSubmitting, setRegSubmitting] = useState(false);
+
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
+
+  useEffect(() => {
+    registerModalRef.current = registerModalOpen;
+  }, [registerModalOpen]);
+
+  const changeTab = (newTab) => {
+    if (newTab === tabRef.current) return;
+    if (tabRef.current === 'dashboard' && newTab !== 'dashboard') {
+      window.history.pushState({ tab: newTab }, '');
+    } else if (newTab !== 'dashboard') {
+      window.history.replaceState({ tab: newTab }, '');
+    }
+    setTab(newTab);
+  };
+
+  useEffect(() => {
+    // Initial guard entry on dashboard mount
+    window.history.pushState({ tab: 'dashboard' }, '');
+
+    const handlePopState = () => {
+      if (registerModalRef.current) {
+        setRegisterModalOpen(false);
+        window.history.pushState({ tab: tabRef.current }, '');
+        return;
+      }
+      if (tabRef.current !== 'dashboard') {
+        setTab('dashboard');
+        window.history.pushState({ tab: 'dashboard' }, '');
+      } else {
+        // Already on dashboard — prevent going back to signin/register screen
+        window.history.pushState({ tab: 'dashboard' }, '');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -94,6 +203,20 @@ export default function CarePortal({ onBackToHome }) {
       if (u?.email) setUserEmail(u.email);
     } catch (e) {}
     fetchEvents();
+    fetchMyRegistrations();
+  }, []);
+
+  // Listen to cross-tab storage changes so admin acceptance reflects immediately
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchMyRegistrations();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
   }, []);
 
   const fetchEvents = async () => {
@@ -102,27 +225,119 @@ export default function CarePortal({ onBackToHome }) {
       const res = await API.get('/events');
       if (res.data?.data?.length > 0) {
         setEvents(res.data.data.map(ev => {
-          const d = new Date(ev.date);
-          return { ...ev, date: d.getDate(), month: d.toLocaleString('en', { month: 'short' }).toUpperCase(), status: 'Open' };
+          const d = new Date(ev.date || Date.now());
+          return {
+            ...ev,
+            date: d.getDate(),
+            month: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
+            year: d.getFullYear(),
+            fullDate: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            spotsLeft: Math.max(0, (ev.spotsTotal || 30) - (ev.volunteersRegistered?.length || 0)),
+            image: ev.image || (
+              ev.category === 'Environment' ? 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=600&q=80' :
+              ev.category === 'Education' ? 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80' :
+              'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80'
+            )
+          };
         }));
       }
     } catch (e) {}
     setLoading(false);
   };
 
-  const handleRegister = async (ev) => {
-    // Check if it's a real MongoDB ObjectId (24-char hex) or a fake mock id
-    const isRealId = /^[a-f\d]{24}$/i.test(ev._id);
+  const fetchMyRegistrations = async () => {
+    let regs = [];
+    try {
+      const res = await API.get('/registrations/my');
+      if (res.data?.data) {
+        regs = res.data.data;
+      }
+    } catch (e) {}
+
+    // Merge with localStorage portal_registrations for real-time local sync with Admin
+    try {
+      const stored = JSON.parse(localStorage.getItem('portal_registrations') || '[]');
+      if (stored.length > 0) {
+        const ids = new Set(regs.map(r => r._id));
+        for (const sr of stored) {
+          if (!ids.has(sr._id)) {
+            regs.unshift(sr);
+          } else {
+            const match = regs.find(r => r._id === sr._id);
+            if (match && sr.status) match.status = sr.status;
+          }
+        }
+      }
+    } catch (e) {}
+
+    setMyRegistrations(regs);
+  };
+
+  const handleOpenRegisterForm = (ev) => {
+    setSelectedEvent(ev);
+    setRegFormData({
+      name: userName || 'Priya Sharma',
+      email: userEmail || 'priya@care.org',
+      phone: '',
+      emergencyContact: '',
+      notes: ''
+    });
+    setRegisterModalOpen(true);
+  };
+
+  const handleFormRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    setRegSubmitting(true);
+
+    const newReg = {
+      _id: 'reg_' + Date.now(),
+      eventId: selectedEvent._id,
+      event: selectedEvent._id,
+      eventTitle: selectedEvent.title,
+      volunteerName: regFormData.name,
+      volunteerEmail: regFormData.email,
+      volunteerPhone: regFormData.phone,
+      emergencyContact: regFormData.emergencyContact,
+      notes: regFormData.notes,
+      createdAt: new Date().toISOString(),
+      status: 'Pending' // Acceptance: pending!
+    };
+
+    // Try posting to API
+    const isRealId = /^[a-f\d]{24}$/i.test(selectedEvent._id);
     if (isRealId) {
       try {
-        await API.post(`/events/${ev._id}/register`);
-      } catch (e) {
-        // ignore API errors — still mark as registered locally
-      }
+        const res = await API.post('/registrations', {
+          eventId: selectedEvent._id,
+          volunteerPhone: regFormData.phone,
+          emergencyContact: regFormData.emergencyContact,
+          notes: regFormData.notes
+        });
+        if (res.data?.data) {
+          newReg._id = res.data.data._id;
+        }
+      } catch (err) {}
     }
-    // Always update UI optimistically
-    setEvents(prev => prev.map(e => e._id === ev._id ? { ...e, status: 'Registered' } : e));
-    alert(`✅ Registered for "${ev.title}"!`);
+
+    // Persist to localStorage portal_registrations so Admin dashboard receives it immediately
+    try {
+      const stored = JSON.parse(localStorage.getItem('portal_registrations') || '[]');
+      const filtered = stored.filter(r => r.eventTitle !== selectedEvent.title && r.event !== selectedEvent._id);
+      localStorage.setItem('portal_registrations', JSON.stringify([newReg, ...filtered]));
+    } catch (err) {}
+
+    setMyRegistrations(prev => [newReg, ...prev.filter(r => r.eventTitle !== selectedEvent.title && r.event !== selectedEvent._id)]);
+
+    // Update spot count locally
+    setEvents(prev => prev.map(ev => ev._id === selectedEvent._id ? {
+      ...ev,
+      spotsLeft: Math.max(0, (ev.spotsLeft !== undefined ? ev.spotsLeft : 24) - 1)
+    } : ev));
+
+    setRegSubmitting(false);
+    setRegisterModalOpen(false);
+    alert(`📋 Registration submitted for "${selectedEvent.title}"! Status: Acceptance Pending.`);
   };
 
   const greeting = () => {
@@ -148,7 +363,7 @@ export default function CarePortal({ onBackToHome }) {
         <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', padding: '0 20px 10px', textTransform: 'uppercase' }}>Volunteer</div>
           {NAV.map(item => (
-            <button key={item.key} onClick={() => setTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : C.sidebarText, fontSize: 12, cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <button key={item.key} onClick={() => changeTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : C.sidebarText, fontSize: 12, cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <Icon d={item.icon} size={14} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>
               {item.label}
             </button>
@@ -177,24 +392,199 @@ export default function CarePortal({ onBackToHome }) {
             <p style={{ fontSize: 13, color: C.muted, marginTop: 4, marginBottom: 0 }}>Here's what's happening with your volunteering today.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button style={{ position: 'relative', background: '#fff', border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex' }} onClick={() => setTab('notifications')}>
-              <Icon d={ICONS.bell} size={20} color={C.muted}/>
-              <span style={{ position: 'absolute', top: -6, right: -6, background: '#dc2626', color: '#fff', borderRadius: '50%', fontSize: 10, width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>3</span>
+            <button
+              style={{
+                position: 'relative',
+                background: tab === 'notifications' ? '#e2e8f0' : '#fff',
+                border: `1.5px solid ${tab === 'notifications' ? '#0f172a' : C.border}`,
+                borderRadius: 8,
+                padding: '8px 10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: tab === 'notifications' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+              title="Notifications"
+              aria-label="Notifications"
+              onClick={() => changeTab('notifications')}
+            >
+              <Icon
+                d={ICONS.bell}
+                size={20}
+                color={tab === 'notifications' ? '#0f172a' : C.muted}
+                fill={tab === 'notifications' ? '#0f172a' : 'none'}
+                strokeWidth={tab === 'notifications' ? 2.5 : 2}
+              />
             </button>
-            <button style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTab('events')}>
+            <button style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => changeTab('events')}>
               <Icon d={ICONS.plus} size={16} color="#fff"/> Find Events
             </button>
           </div>
         </div>
 
-        {tab === 'dashboard' && <DashboardView events={events} activities={DEFAULT_ACTIVITIES} loading={loading} onRegister={handleRegister} onTabChange={setTab}/>}
-        {tab === 'events' && <EventsView events={events} loading={loading} onRegister={handleRegister}/>}
+        {tab === 'dashboard' && (
+          <DashboardView
+            events={events}
+            activities={DEFAULT_ACTIVITIES}
+            loading={loading}
+            myRegistrations={myRegistrations}
+            onOpenRegisterForm={handleOpenRegisterForm}
+            onTabChange={changeTab}
+          />
+        )}
+        {tab === 'events' && (
+          <EventsView
+            events={events}
+            loading={loading}
+            myRegistrations={myRegistrations}
+            onOpenRegisterForm={handleOpenRegisterForm}
+          />
+        )}
         {tab === 'hours' && <HoursView/>}
         {tab === 'donations' && <DonationsView/>}
         {tab === 'notifications' && <NotificationsView/>}
         {tab === 'reports' && <ReportsView/>}
         {tab === 'beneficiaries' && <BeneficiariesView/>}
       </main>
+
+      {/* ── Event Registration Form Modal ── */}
+      {registerModalOpen && selectedEvent && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16
+        }}>
+          <div style={{
+            background: '#fff',
+            width: 480,
+            maxWidth: '100%',
+            borderRadius: 16,
+            padding: '26px 28px',
+            boxShadow: '0 20px 45px rgba(0,0,0,0.2)',
+            position: 'relative',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <button
+              onClick={() => setRegisterModalOpen(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 20, color: C.muted, cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+
+            <h3 style={{ margin: '0 0 4px', fontSize: 18, color: C.navy, fontWeight: 700 }}>
+              Volunteer Registration Form
+            </h3>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: C.muted }}>
+              Submit your details to register. Your application will be sent to the administrator for acceptance.
+            </p>
+
+            {/* Event Summary Card */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 18 }}>
+              <div style={{ fontWeight: 700, fontSize: 14.5, color: C.navy, marginBottom: 4 }}>
+                {selectedEvent.title}
+              </div>
+              <div style={{ fontSize: 12, color: '#4b5563', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                <span>📅 {selectedEvent.fullDate || `${selectedEvent.month || 'JUL'} ${selectedEvent.date}, 2026`}</span>
+                <span>📍 {selectedEvent.location}</span>
+                <span>🏷️ {selectedEvent.category}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleFormRegisterSubmit}>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={regFormData.name}
+                  onChange={e => setRegFormData({ ...regFormData, name: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={regFormData.email}
+                  onChange={e => setRegFormData({ ...regFormData, email: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="e.g. +91 98765 43210"
+                  value={regFormData.phone}
+                  onChange={e => setRegFormData({ ...regFormData, phone: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  Emergency Contact (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contact Name & Number"
+                  value={regFormData.emergencyContact}
+                  onChange={e => setRegFormData({ ...regFormData, emergencyContact: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 18 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                  Volunteer Notes / Availability (Optional)
+                </label>
+                <textarea
+                  rows="2"
+                  placeholder="Any relevant skills or notes for admin review"
+                  value={regFormData.notes}
+                  onChange={e => setRegFormData({ ...regFormData, notes: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, boxSizing: 'border-box', fontFamily: 'inherit' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setRegisterModalOpen(false)}
+                  style={{ padding: '9px 16px', border: `1px solid ${C.border}`, background: '#fff', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontWeight: 600, color: C.muted }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={regSubmitting}
+                  style={{ padding: '9px 20px', border: 'none', background: C.green, color: '#fff', borderRadius: 8, fontSize: 13.5, cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {regSubmitting ? 'Submitting…' : 'Submit Registration'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -203,7 +593,7 @@ function Card({ children, style = {} }) {
   return <div style={{ background: C.card, borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20, ...style }}>{children}</div>;
 }
 
-function DashboardView({ events, activities, loading, onRegister, onTabChange }) {
+function DashboardView({ events, activities, loading, myRegistrations = [], onOpenRegisterForm, onTabChange }) {
   const maxH = Math.max(...MONTHLY_HOURS.map(m => m.hours));
   const stats = [
     { label: 'Total Hours Logged', value: '128 hrs', badge: '+8 this month', badgeColor: C.green, icon: ICONS.clock },
@@ -283,19 +673,42 @@ function DashboardView({ events, activities, loading, onRegister, onTabChange })
             <div style={{ fontSize: 15, fontWeight: 700, color: C.navy }}>Upcoming Events</div>
             <button style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 12px', fontSize: 12, color: C.muted, cursor: 'pointer' }} onClick={() => onTabChange('events')}>View all</button>
           </div>
-          {loading ? <p style={{ color: C.muted }}>Loading…</p> : events.slice(0, 3).map((ev, i) => (
-            <div key={ev._id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 2 ? `1px solid ${C.border}` : 'none' }}>
-              <div style={{ textAlign: 'center', width: 38, flexShrink: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{ev.date}</div>
-                <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', marginTop: 1 }}>{ev.month || 'JUL'}</div>
+          {loading ? <p style={{ color: C.muted }}>Loading…</p> : events.slice(0, 3).map((ev, i) => {
+            const userReg = myRegistrations.find(r => r.event === ev._id || r.eventId === ev._id || r.eventTitle?.toLowerCase() === ev.title?.toLowerCase());
+            const regStatus = userReg ? userReg.status : null;
+            return (
+              <div key={ev._id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 2 ? `1px solid ${C.border}` : 'none' }}>
+                <div style={{ textAlign: 'center', width: 38, flexShrink: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{ev.date}</div>
+                  <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', marginTop: 1 }}>{ev.month || 'JUL'}</div>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
+                  <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {ev.location}</div>
+                </div>
+                {regStatus === 'Pending' && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#fef3c7', color: '#d97706', whiteSpace: 'nowrap' }}>
+                    Acceptance: Pending
+                  </span>
+                )}
+                {regStatus === 'Approved' && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: C.greenLight, color: C.green, whiteSpace: 'nowrap' }}>
+                    Accepted
+                  </span>
+                )}
+                {regStatus === 'Rejected' && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#fee2e2', color: '#dc2626', whiteSpace: 'nowrap' }}>
+                    Declined
+                  </span>
+                )}
+                {!regStatus && (
+                  <button onClick={() => onOpenRegisterForm(ev)} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 11.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Register
+                  </button>
+                )}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{ev.title}</div>
-                <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>📍 {ev.location}</div>
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: ev.status === 'Registered' ? C.greenLight : '#fef3c7', color: ev.status === 'Registered' ? C.green : '#d97706', whiteSpace: 'nowrap' }}>{ev.status || 'Open'}</span>
-            </div>
-          ))}
+            );
+          })}
         </Card>
 
         <Card style={{ marginBottom: 0 }}>
@@ -335,33 +748,232 @@ function DashboardView({ events, activities, loading, onRegister, onTabChange })
   );
 }
 
-function EventsView({ events, loading, onRegister }) {
+function EventCard({ event, regStatus, onRegister }) {
+  return (
+    <div style={{
+      background: '#ffffff',
+      borderRadius: 14,
+      border: `1px solid ${C.border}`,
+      overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+    }}>
+      {/* Top Banner Photo */}
+      <div style={{ height: 160, width: '100%', overflow: 'hidden', position: 'relative', background: '#f3f4f6' }}>
+        <img
+          src={event.image || 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80'}
+          alt={event.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
+
+      {/* Card Content */}
+      <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {/* Category & Spots Left */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{
+            background: '#dcfce7',
+            color: '#16a34a',
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 10px',
+            borderRadius: 20
+          }}>
+            {event.category}
+          </span>
+          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
+            {event.spotsLeft !== undefined ? `${event.spotsLeft} spots left` : 'Spots available'}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h3 style={{
+          margin: '0 0 10px',
+          fontSize: 15.5,
+          fontWeight: 700,
+          color: '#0a3d24',
+          lineHeight: 1.3
+        }}>
+          {event.title}
+        </h3>
+
+        {/* Date */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#4b5563', marginBottom: 6 }}>
+          <Icon d={ICONS.calendar} size={14} color="#6b7280"/>
+          <span>{event.fullDate || `${event.month || 'JUL'} ${event.date}, 2026`}</span>
+        </div>
+
+        {/* Location */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#4b5563', marginBottom: 18 }}>
+          <Icon d={ICONS.map} size={14} color="#6b7280"/>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.location}</span>
+        </div>
+
+        {/* Button / Acceptance Status */}
+        <div style={{ marginTop: 'auto' }}>
+          {!regStatus && (
+            <button
+              onClick={onRegister}
+              style={{
+                width: '100%',
+                background: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '11px',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6
+              }}
+            >
+              Register Now
+            </button>
+          )}
+
+          {regStatus === 'Pending' && (
+            <div style={{
+              width: '100%',
+              background: '#fef3c7',
+              color: '#d97706',
+              border: '1.5px solid #fde68a',
+              borderRadius: 8,
+              padding: '10px',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6
+            }}>
+              <span>⏳ Acceptance: Pending</span>
+            </div>
+          )}
+
+          {regStatus === 'Approved' && (
+            <div style={{
+              width: '100%',
+              background: '#dcfce7',
+              color: '#16a34a',
+              border: '1.5px solid #bbf7d0',
+              borderRadius: 8,
+              padding: '10px',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6
+            }}>
+              <span>✓ Registered (Accepted)</span>
+            </div>
+          )}
+
+          {regStatus === 'Rejected' && (
+            <div style={{
+              width: '100%',
+              background: '#fee2e2',
+              color: '#dc2626',
+              border: '1px solid #fecaca',
+              borderRadius: 8,
+              padding: '10px',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center'
+            }}>
+              <span>✕ Registration Declined</span>
+            </div>
+          )}
+
+          {regStatus === 'Attended' && (
+            <div style={{
+              width: '100%',
+              background: '#eff6ff',
+              color: '#2563eb',
+              border: '1px solid #bfdbfe',
+              borderRadius: 8,
+              padding: '10px',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center'
+            }}>
+              <span>★ Attended</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventsView({ events, loading, myRegistrations = [], onOpenRegisterForm }) {
   const [search, setSearch] = useState('');
-  const filtered = events.filter(ev => ev.title.toLowerCase().includes(search.toLowerCase()));
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
+  const filtered = events.filter(ev => {
+    const matchesSearch = ev.title.toLowerCase().includes(search.toLowerCase()) ||
+                          ev.location.toLowerCase().includes(search.toLowerCase());
+    const matchesCat = categoryFilter === 'All' || ev.category === categoryFilter;
+    return matchesSearch && matchesCat;
+  });
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div><h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.navy }}>My Events</h2><p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Browse and register for upcoming community drives.</p></div>
-        <input type="text" placeholder="Search events…" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '9px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: 'none', width: 220 }}/>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.navy }}>Community Events</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Browse upcoming drives, register as a volunteer, and track your acceptance status.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <select
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+            style={{ padding: '9px 12px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13, background: '#fff', outline: 'none' }}
+          >
+            <option value="All">All Categories</option>
+            <option value="Community">Community</option>
+            <option value="Environment">Environment</option>
+            <option value="Education">Education</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Search events…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ padding: '9px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: 'none', width: 220 }}
+          />
+        </div>
       </div>
-      <Card>
-        {loading ? <p style={{ color: C.muted }}>Loading…</p> : filtered.map((ev, i) => (
-          <div key={ev._id || i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: i < filtered.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-            <div style={{ width: 44, height: 44, background: C.greenLight, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: C.navy, lineHeight: 1 }}>{ev.date}</div>
-              <div style={{ fontSize: 9, color: C.muted, textTransform: 'uppercase' }}>{ev.month || 'JUL'}</div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{ev.title}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>📍 {ev.location} · {ev.category}</div>
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: ev.status === 'Registered' ? C.greenLight : '#fef3c7', color: ev.status === 'Registered' ? C.green : '#d97706', marginRight: 12 }}>{ev.status || 'Open'}</span>
-            {ev.status !== 'Registered' && (
-              <button onClick={() => onRegister(ev)} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Register</button>
-            )}
-          </div>
-        ))}
-      </Card>
+
+      {loading ? (
+        <Card><p style={{ color: C.muted, margin: 0 }}>Loading events…</p></Card>
+      ) : filtered.length === 0 ? (
+        <Card><p style={{ color: C.muted, margin: 0 }}>No events found matching your search.</p></Card>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+          {filtered.map(ev => {
+            const userReg = myRegistrations.find(r => r.event === ev._id || r.eventId === ev._id || r.eventTitle?.toLowerCase() === ev.title?.toLowerCase());
+            const regStatus = userReg ? userReg.status : null;
+
+            return (
+              <EventCard
+                key={ev._id}
+                event={ev}
+                regStatus={regStatus}
+                onRegister={() => onOpenRegisterForm(ev)}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -452,12 +1064,28 @@ function DonationsView() {
 }
 
 function NotificationsView() {
-  const notes = [
+  const [notes, setNotes] = useState([
     { text: 'Registered for Coastal Cleanup Campaign', sub: 'Event Registration', time: '2h ago', icon: ICONS.calendar },
     { text: 'Your hours for Food Drive have been approved', sub: 'Hours Approved', time: 'Yesterday', icon: ICONS.check },
     { text: 'New event: School Supplies Drive on Jul 26', sub: 'New Event', time: 'Jul 8', icon: ICONS.bell },
     { text: 'Monthly goal: 70% reached — keep going!', sub: 'Goal Update', time: 'Jul 6', icon: ICONS.award },
-  ];
+  ]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('portal_notifications') || '[]');
+      if (stored.length > 0) {
+        const mapped = stored.map(s => ({
+          text: s.text,
+          sub: s.sub || 'Status Update',
+          time: s.time || 'Recently',
+          icon: ICONS.check
+        }));
+        setNotes(prev => [...mapped, ...prev]);
+      }
+    } catch (e) {}
+  }, []);
+
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: C.navy }}>Notifications</h2>
@@ -465,7 +1093,7 @@ function NotificationsView() {
         {notes.map((n, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 0', borderBottom: i < notes.length - 1 ? `1px solid ${C.border}` : 'none' }}>
             <div style={{ width: 36, height: 36, background: C.greenLight, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon d={n.icon} size={16} color={C.green}/>
+              <Icon d={n.icon || ICONS.bell} size={16} color={C.green}/>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text }}>{n.text}</div>

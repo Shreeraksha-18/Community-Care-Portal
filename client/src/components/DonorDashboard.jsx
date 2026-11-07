@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
@@ -43,14 +43,59 @@ function Card({ children, style = {} }) {
 export default function DonorDashboard({ onBackToHome }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('dashboard');
+  const tabRef = useRef(tab);
   const [userName, setUserName] = useState('Rahul Verma');
   const [userEmail, setUserEmail] = useState('rahul@roshantrust.org');
   const [campaigns, setCampaigns] = useState(DEFAULT_CAMPAIGNS);
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const checkoutRef = useRef(checkoutOpen);
   const [selectedCampaign, setSelectedCampaign] = useState('');
   const [amount, setAmount] = useState(1000);
+
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
+
+  useEffect(() => {
+    checkoutRef.current = checkoutOpen;
+  }, [checkoutOpen]);
+
+  const changeTab = (newTab) => {
+    if (newTab === tabRef.current) return;
+    if (tabRef.current === 'dashboard' && newTab !== 'dashboard') {
+      window.history.pushState({ tab: newTab }, '');
+    } else if (newTab !== 'dashboard') {
+      window.history.replaceState({ tab: newTab }, '');
+    }
+    setTab(newTab);
+  };
+
+  useEffect(() => {
+    // Initial guard entry on dashboard mount
+    window.history.pushState({ tab: 'dashboard' }, '');
+
+    const handlePopState = () => {
+      if (checkoutRef.current) {
+        setCheckoutOpen(false);
+        window.history.pushState({ tab: tabRef.current }, '');
+        return;
+      }
+      if (tabRef.current !== 'dashboard') {
+        setTab('dashboard');
+        window.history.pushState({ tab: 'dashboard' }, '');
+      } else {
+        // Already on dashboard — stay here, never go back to signin/register
+        window.history.pushState({ tab: 'dashboard' }, '');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -108,7 +153,7 @@ export default function DonorDashboard({ onBackToHome }) {
         <div style={{ flex: 1, padding: '16px 0' }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', padding: '0 20px 10px', textTransform: 'uppercase' }}>Donor</div>
           {NAV.map(item => (
-            <button key={item.key} onClick={() => setTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 12, cursor: 'pointer', textAlign: 'left', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <button key={item.key} onClick={() => changeTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 12, cursor: 'pointer', textAlign: 'left', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <Icon d={item.icon} size={14} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>{item.label}
             </button>
           ))}
@@ -127,7 +172,7 @@ export default function DonorDashboard({ onBackToHome }) {
 
       {/* Main */}
       <main style={{ flex: 1, padding: '20px 24px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
-        {tab === 'dashboard' && <DonorOverview userName={userName} totalDonated={totalDonated} campaigns={campaigns} receipts={receipts} openCheckout={openCheckout} onViewCampaigns={() => setTab('campaigns')} onViewReceipts={() => setTab('receipts')}/>}
+        {tab === 'dashboard' && <DonorOverview userName={userName} totalDonated={totalDonated} campaigns={campaigns} receipts={receipts} openCheckout={openCheckout} onViewCampaigns={() => changeTab('campaigns')} onViewReceipts={() => changeTab('receipts')}/>}
         {tab === 'campaigns' && <DonorCampaigns campaigns={campaigns} openCheckout={openCheckout}/>}
         {tab === 'receipts' && <DonorReceipts receipts={receipts} loading={loading}/>}
         {tab === 'profile' && <DonorProfile userName={userName} userEmail={userEmail}/>}

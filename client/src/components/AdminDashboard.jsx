@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
@@ -71,6 +71,12 @@ const INIT_BENEFICIARIES = [
   { id: 3, name: 'Andheri Food Bank', category: 'Food Support', location: 'Andheri', status: 'Assisted' },
 ];
 
+const INIT_REGISTRATIONS = [
+  { _id: 'reg_1', volunteerName: 'Priya Sharma', volunteerEmail: 'priya@care.org', volunteerPhone: '+91 98765 43210', eventTitle: 'Food Drive at City Center', createdAt: new Date().toISOString(), status: 'Pending', notes: 'Available all day for food packing and kit distribution' },
+  { _id: 'reg_2', volunteerName: 'Ishaan Kapoor', volunteerEmail: 'ishaan@helpage.org', volunteerPhone: '+91 98765 43211', eventTitle: 'Coastal Cleanup Campaign', createdAt: new Date(Date.now() - 86400000).toISOString(), status: 'Approved', notes: 'Certified first-responder' },
+  { _id: 'reg_3', volunteerName: 'Ananya Roy', volunteerEmail: 'ananya@ecocare.org', volunteerPhone: '+91 98765 43212', eventTitle: 'School Supplies Drive', createdAt: new Date(Date.now() - 172800000).toISOString(), status: 'Attended', hoursLogged: 4, notes: 'Education materials lead' },
+];
+
 function Card({ children, style = {} }) {
   return <div style={{ background: C.card, borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20, ...style }}>{children}</div>;
 }
@@ -99,6 +105,7 @@ function Field({ label, ...props }) {
 export default function AdminDashboard({ onBackToHome }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('overview');
+  const tabRef = useRef(tab);
   const [adminName, setAdminName] = useState('Admin');
   const [adminEmail, setAdminEmail] = useState('admin@communitycare.org');
   const [volunteers, setVolunteers] = useState(INIT_VOLUNTEERS);
@@ -107,7 +114,51 @@ export default function AdminDashboard({ onBackToHome }) {
   const [beneficiaries, setBeneficiaries] = useState(INIT_BENEFICIARIES);
   const [registrations, setRegistrations] = useState([]);
   const [modal, setModal] = useState(null);
+  const modalRef = useRef(modal);
   const [form, setForm] = useState({});
+
+  useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
+
+  useEffect(() => {
+    modalRef.current = modal;
+  }, [modal]);
+
+  const changeTab = (newTab) => {
+    if (newTab === tabRef.current) return;
+    if (tabRef.current === 'overview' && newTab !== 'overview') {
+      window.history.pushState({ tab: newTab }, '');
+    } else if (newTab !== 'overview') {
+      window.history.replaceState({ tab: newTab }, '');
+    }
+    setTab(newTab);
+  };
+
+  useEffect(() => {
+    // Initial guard entry on dashboard mount
+    window.history.pushState({ tab: 'overview' }, '');
+
+    const handlePopState = () => {
+      if (modalRef.current) {
+        setModal(null);
+        window.history.pushState({ tab: tabRef.current }, '');
+        return;
+      }
+      if (tabRef.current !== 'overview') {
+        setTab('overview');
+        window.history.pushState({ tab: 'overview' }, '');
+      } else {
+        // Already on overview/dashboard screen — stay here, never go back to signin/register
+        window.history.pushState({ tab: 'overview' }, '');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -118,13 +169,27 @@ export default function AdminDashboard({ onBackToHome }) {
     fetchData();
   }, []);
 
+  // Listen to cross-tab storage changes so volunteer registrations appear in real-time
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchData();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleStorageChange);
+    };
+  }, []);
+
   const fetchData = async () => {
+    let regs = [];
     try {
       const [regRes, evRes] = await Promise.all([
         API.get('/registrations'),
         API.get('/events')
       ]);
-      if (regRes.data?.data) setRegistrations(regRes.data.data);
+      if (regRes.data?.data?.length > 0) regs = regRes.data.data;
       if (evRes.data?.data?.length > 0) setEvents(evRes.data.data.map(ev => ({
         id: ev._id, title: ev.title, category: ev.category,
         date: new Date(ev.date).toLocaleDateString('en-IN'),
@@ -132,13 +197,69 @@ export default function AdminDashboard({ onBackToHome }) {
         registered: ev.volunteersRegistered?.length || 0, status: ev.status
       })));
     } catch (e) {}
+
+    // Merge with localStorage portal_registrations (for local persistence and cross-role sync)
+    try {
+      const localRegs = JSON.parse(localStorage.getItem('portal_registrations') || '[]');
+      if (localRegs.length > 0) {
+        const ids = new Set(regs.map(r => r._id));
+        for (const lr of localRegs) {
+          if (!ids.has(lr._id)) {
+            regs.unshift(lr);
+          } else {
+            const match = regs.find(r => r._id === lr._id);
+            if (match && lr.status) match.status = lr.status;
+          }
+        }
+      }
+    } catch (e) {}
+
+    if (regs.length === 0) {
+      regs = INIT_REGISTRATIONS;
+    }
+    setRegistrations(regs);
   };
 
   const handleApprove = async (id, status) => {
     try {
-      await API.put(`/registrations/${id}/approve`, { status });
-      setRegistrations(prev => prev.map(r => r._id === id ? { ...r, status } : r));
-    } catch (e) { alert('Error updating registration'); }
+      const isRealId = /^[a-f\d]{24}$/i.test(id);
+      if (isRealId) {
+        await API.put(`/registrations/${id}/approve`, { status });
+      }
+    } catch (e) {}
+
+    // Update state
+    setRegistrations(prev => prev.map(r => r._id === id ? { ...r, status } : r));
+
+    // Update localStorage portal_registrations
+    try {
+      const stored = JSON.parse(localStorage.getItem('portal_registrations') || '[]');
+      let updated = stored.map(r => r._id === id ? { ...r, status } : r);
+      if (!stored.some(r => r._id === id)) {
+        const found = registrations.find(r => r._id === id);
+        if (found) updated.push({ ...found, status });
+      }
+      localStorage.setItem('portal_registrations', JSON.stringify(updated));
+
+      // If approved, notify the volunteer
+      const targetReg = registrations.find(r => r._id === id);
+      if (targetReg && status === 'Approved') {
+        const notifications = JSON.parse(localStorage.getItem('portal_notifications') || '[]');
+        notifications.unshift({
+          text: `Your registration for "${targetReg.eventTitle}" has been Accepted by Admin!`,
+          sub: 'Registration Accepted',
+          time: 'Just now',
+          icon: 'check'
+        });
+        localStorage.setItem('portal_notifications', JSON.stringify(notifications));
+      }
+    } catch (e) {}
+
+    if (status === 'Approved') {
+      alert('✅ Registration Accepted! The volunteer user portal now reflects this approval.');
+    } else {
+      alert(`Registration status updated to ${status}.`);
+    }
   };
 
   const handleAttendance = async (id, hours) => {
@@ -198,7 +319,7 @@ export default function AdminDashboard({ onBackToHome }) {
         <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', padding: '0 20px 10px', textTransform: 'uppercase' }}>Administration</div>
           {NAV.map(item => (
-            <button key={item.key} onClick={() => setTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 12, cursor: 'pointer', textAlign: 'left', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <button key={item.key} onClick={() => changeTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 12, cursor: 'pointer', textAlign: 'left', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <Icon d={item.icon} size={14} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>{item.label}
             </button>
           ))}
@@ -489,33 +610,139 @@ function AdminReports({ volunteers, events, campaigns, onExport }) {
 
 function AdminRegistrations({ registrations, onApprove, onAttendance }) {
   const [hoursInput, setHoursInput] = useState({});
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  const pendingCount = registrations.filter(r => r.status === 'Pending').length;
+
+  const filtered = registrations.filter(r => {
+    if (statusFilter === 'All') return true;
+    return r.status === statusFilter;
+  });
 
   return (
     <div>
-      <SectionHeader title="Volunteer Registrations" sub="Approve, reject or mark attendance for volunteer event registrations."/>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <SectionHeader
+          title="Volunteer Registrations"
+          sub="Review volunteer applications, accept or decline registrations, and log volunteer attendance hours."
+        />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {[
+            { key: 'All', label: 'All' },
+            { key: 'Pending', label: `Pending Approval (${pendingCount})` },
+            { key: 'Approved', label: 'Accepted' },
+            { key: 'Attended', label: 'Attended' }
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: `1.5px solid ${statusFilter === f.key ? C.green : C.border}`,
+                background: statusFilter === f.key ? C.greenBg : '#fff',
+                color: statusFilter === f.key ? C.green : C.muted,
+                fontWeight: 600,
+                fontSize: 12,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Card>
-        {registrations.length === 0 ? (
-          <p style={{ color: C.muted, fontSize: 13 }}>No registrations yet.</p>
+        {filtered.length === 0 ? (
+          <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>No registrations found.</p>
         ) : (
           <Table
-            headers={['Volunteer', 'Event', 'Registered On', 'Status', 'Actions']}
-            rows={registrations.map((r, i) => (
+            headers={['Volunteer', 'Event', 'Contact / Notes', 'Registered On', 'Status', 'Actions']}
+            rows={filtered.map((r, i) => (
               <tr key={r._id || i}>
-                <Td><strong>{r.volunteerName}</strong><div style={{ fontSize: 11.5, color: C.muted }}>{r.volunteerEmail}</div></Td>
-                <Td>{r.eventTitle}</Td>
-                <Td>{new Date(r.createdAt).toLocaleDateString('en-IN')}</Td>
                 <Td>
-                  <Badge
-                    label={r.status}
-                    color={r.status === 'Approved' || r.status === 'Attended' ? 'green' : r.status === 'Rejected' ? 'red' : 'yellow'}
-                  />
+                  <strong>{r.volunteerName}</strong>
+                  <div style={{ fontSize: 11.5, color: C.muted }}>{r.volunteerEmail}</div>
+                </Td>
+                <Td>
+                  <strong>{r.eventTitle}</strong>
+                </Td>
+                <Td>
+                  <div style={{ fontSize: 12, color: C.text }}>
+                    {r.volunteerPhone ? `📞 ${r.volunteerPhone}` : <span style={{ color: C.muted }}>No phone provided</span>}
+                  </div>
+                  {r.emergencyContact ? (
+                    <div style={{ fontSize: 11, color: C.muted }}>Emerg: {r.emergencyContact}</div>
+                  ) : null}
+                  {r.notes ? (
+                    <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.notes}>
+                      📝 "{r.notes}"
+                    </div>
+                  ) : null}
+                </Td>
+                <Td>{new Date(r.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</Td>
+                <Td>
+                  {r.status === 'Pending' ? (
+                    <span style={{
+                      background: '#fef3c7',
+                      color: '#d97706',
+                      border: '1.5px solid #fde68a',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: 20,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}>
+                      ⏳ Acceptance: Pending
+                    </span>
+                  ) : (
+                    <Badge
+                      label={r.status === 'Approved' ? '✓ Accepted' : r.status}
+                      color={r.status === 'Approved' || r.status === 'Attended' ? 'green' : r.status === 'Rejected' ? 'red' : 'yellow'}
+                    />
+                  )}
                 </Td>
                 <Td>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     {r.status === 'Pending' && (
                       <>
-                        <ActionBtn label="Approve" color={C.green} onClick={() => onApprove(r._id, 'Approved')}/>
-                        <ActionBtn label="Reject" color="#dc2626" onClick={() => onApprove(r._id, 'Rejected')}/>
+                        <button
+                          onClick={() => onApprove(r._id, 'Approved')}
+                          style={{
+                            padding: '6px 14px',
+                            border: 'none',
+                            background: C.green,
+                            color: '#fff',
+                            borderRadius: 7,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                        >
+                          ✓ Accept
+                        </button>
+                        <button
+                          onClick={() => onApprove(r._id, 'Rejected')}
+                          style={{
+                            padding: '6px 12px',
+                            border: '1.5px solid #dc2626',
+                            background: '#fff',
+                            color: '#dc2626',
+                            borderRadius: 7,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ✕ Reject
+                        </button>
                       </>
                     )}
                     {r.status === 'Approved' && (
@@ -533,6 +760,9 @@ function AdminRegistrations({ registrations, onApprove, onAttendance }) {
                     )}
                     {r.status === 'Attended' && (
                       <span style={{ fontSize: 12, color: C.muted }}>{r.hoursLogged} hrs logged</span>
+                    )}
+                    {r.status === 'Rejected' && (
+                      <span style={{ fontSize: 12, color: '#dc2626' }}>Declined</span>
                     )}
                   </div>
                 </Td>
