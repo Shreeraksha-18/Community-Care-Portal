@@ -296,11 +296,11 @@ export default function CarePortal({ onBackToHome }) {
   const handleLogout = () => { localStorage.removeItem('currentUser'); navigate('/'); };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg, overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', height: '100vh', maxHeight: '100vh', width: '100vw', maxWidth: '100vw', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg, overflow: 'hidden', boxSizing: 'border-box' }}>
       {/* ── Sidebar ── */}
-      <aside style={{ width: 180, minWidth: 180, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+      <aside style={{ width: 200, minWidth: 200, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', maxHeight: '100vh', overflowY: 'auto', overflowX: 'hidden', boxSizing: 'border-box' }}>
         {/* Logo */}
-        <div onClick={() => changeTab('dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: `1px solid rgba(255,255,255,0.1)`, cursor: 'pointer' }} title="Go to Dashboard Home">
+        <div onClick={() => changeTab('dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: `1px solid rgba(255,255,255,0.1)`, cursor: 'pointer', flexShrink: 0 }} title="Go to Dashboard Home">
           <div style={{ width: 28, height: 28, borderRadius: 8, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg>
           </div>
@@ -308,18 +308,41 @@ export default function CarePortal({ onBackToHome }) {
         </div>
 
         {/* Nav */}
-        <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto', overflowX: 'hidden' }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', padding: '0 20px 10px', textTransform: 'uppercase' }}>Volunteer</div>
           {NAV.map(item => (
-            <button key={item.key} onClick={() => changeTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : C.sidebarText, fontSize: 12, cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 8 : 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              <Icon d={item.icon} size={14} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>
+            <button
+              key={item.key}
+              onClick={() => changeTab(item.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                padding: '10px 18px',
+                background: tab === item.key ? C.sidebarActive : 'transparent',
+                border: 'none',
+                color: tab === item.key ? '#fff' : C.sidebarText,
+                fontSize: 12.5,
+                fontWeight: tab === item.key ? 600 : 500,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s',
+                borderRadius: tab === item.key ? '0 8px 8px 0' : 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                boxSizing: 'border-box'
+              }}
+            >
+              <Icon d={item.icon} size={15} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>
               {item.label}
             </button>
           ))}
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '14px 16px', borderTop: `1px solid rgba(255,255,255,0.1)`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ padding: '16px 18px', borderTop: `1px solid rgba(255,255,255,0.1)`, display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginTop: 'auto', background: C.sidebar }}>
           <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.green, color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{userName[0]}</div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
@@ -332,7 +355,7 @@ export default function CarePortal({ onBackToHome }) {
       </aside>
 
       {/* ── Main ── */}
-      <main style={{ flex: 1, padding: '20px 24px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
+      <main style={{ flex: 1, height: '100vh', maxHeight: '100vh', padding: '20px 24px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
@@ -677,20 +700,6 @@ function DashboardView({ events, activities, loading, myRegistrations = [], onOp
             </div>
           ))}
         </Card>
-      </div>
-
-      {/* Impact banner */}
-      <div style={{ background: C.sidebar, borderRadius: 12, padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 36, height: 36, background: C.greenLight, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon d={ICONS.heart} size={18} color={C.green}/>
-          </div>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 700, fontSize: 14.5 }}>You've impacted 48 lives this year</div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 2 }}>Keep going — you're in the top 10% of volunteers on this platform.</div>
-          </div>
-        </div>
-        <button style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', whiteSpace: 'nowrap' }}>View Impact Report</button>
       </div>
     </div>
   );
