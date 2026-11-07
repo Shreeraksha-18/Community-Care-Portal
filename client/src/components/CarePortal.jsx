@@ -111,9 +111,14 @@ export default function CarePortal({ onBackToHome }) {
   };
 
   const handleRegister = async (ev) => {
-    try { await API.post(`/events/${ev._id}/register`); } catch (e) {}
-    alert(`Registered for "${ev.title}"!`);
-    setEvents(prev => prev.map(e => e._id === ev._id ? { ...e, status: 'Registered' } : e));
+    try {
+      await API.post(`/registrations`, { eventId: ev._id });
+      alert(`Registered for "${ev.title}"! Status: Pending admin approval.`);
+    } catch (e) {
+      if (e.response?.data?.message) alert(e.response.data.message);
+      else alert(`Registered for "${ev.title}"!`);
+    }
+    setEvents(prev => prev.map(e => e._id === ev._id ? { ...e, status: 'Pending' } : e));
   };
 
   const greeting = () => {
@@ -370,8 +375,12 @@ function HoursView() {
 
   const submit = async (e) => {
     e.preventDefault();
-    try { await API.post('/activities', { title: form.title, hoursLogged: Number(form.hours), category: form.category }); } catch (err) {}
-    setEntries([{ ...form, hours: Number(form.hours), date: 'Today', status: 'Pending' }, ...entries]);
+    try {
+      const res = await API.post('/activities', { title: form.title, hoursLogged: Number(form.hours), category: form.category });
+      setEntries([{ title: form.title, category: form.category, hours: Number(form.hours), date: 'Today', status: 'Pending' }, ...entries]);
+    } catch (err) {
+      setEntries([{ title: form.title, category: form.category, hours: Number(form.hours), date: 'Today', status: 'Pending' }, ...entries]);
+    }
     setForm({ title: '', hours: '', category: '' });
     setShowForm(false);
   };

@@ -23,11 +23,14 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    // Block admin role from public signup
+    const safeRole = (role === 'admin') ? 'volunteer' : (role || 'volunteer');
+
     const user = await User.create({
       name,
       email: email.toLowerCase(),
       password,
-      role: role || 'volunteer',
+      role: safeRole,
       phone: phone || '',
       organization: organization || 'Community Care Volunteers'
     });

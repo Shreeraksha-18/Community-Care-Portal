@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
 const C = {
-  sidebar: '#0a3d24', sidebarActive: '#16a34a', green: '#16a34a', greenDark: '#0f6b3f',
   greenLight: '#dcfce7', greenBg: '#f0fdf4', bg: '#f4f6f5', card: '#ffffff',
   border: '#e5e7eb', text: '#111827', muted: '#6b7280', navy: '#0a3d24',
 };
@@ -31,6 +30,7 @@ const NAV = [
   { key: 'overview', label: 'Dashboard', icon: ICONS.overview },
   { key: 'volunteers', label: 'Manage Volunteers', icon: ICONS.volunteers },
   { key: 'events', label: 'Manage Events', icon: ICONS.events },
+  { key: 'registrations', label: 'Registrations', icon: ICONS.check },
   { key: 'campaigns', label: 'Manage Campaigns', icon: ICONS.campaigns },
   { key: 'beneficiaries', label: 'Beneficiaries', icon: ICONS.beneficiaries },
   { key: 'reports', label: 'Reports & Analytics', icon: ICONS.reports },
@@ -95,6 +95,7 @@ export default function AdminDashboard({ onBackToHome }) {
   const [events, setEvents] = useState(INIT_EVENTS);
   const [campaigns, setCampaigns] = useState(INIT_CAMPAIGNS);
   const [beneficiaries, setBeneficiaries] = useState(INIT_BENEFICIARIES);
+  const [registrations, setRegistrations] = useState([]);
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState({});
 
@@ -104,7 +105,53 @@ export default function AdminDashboard({ onBackToHome }) {
       if (u?.name) setAdminName(u.name);
       if (u?.email) setAdminEmail(u.email);
     } catch (e) {}
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const [regRes, evRes] = await Promise.all([
+        API.get('/registrations'),
+        API.get('/events')
+      ]);
+      if (regRes.data?.data) setRegistrations(regRes.data.data);
+      if (evRes.data?.data?.length > 0) setEvents(evRes.data.data.map(ev => ({
+        id: ev._id, title: ev.title, category: ev.category,
+        date: new Date(ev.date).toLocaleDateString('en-IN'),
+        location: ev.location, spots: ev.spotsTotal,
+        registered: ev.volunteersRegistered?.length || 0, status: ev.status
+      })));
+    } catch (e) {}
+  };
+
+  const handleApprove = async (id, status) => {
+    try {
+      await API.put(`/registrations/${id}/approve`, { status });
+      setRegistrations(prev => prev.map(r => r._id === id ? { ...r, status } : r));
+    } catch (e) { alert('Error updating registration'); }
+  };
+
+  const handleAttendance = async (id, hours) => {
+    try {
+      await API.put(`/registrations/${id}/attend`, { hoursLogged: hours });
+      setRegistrations(prev => prev.map(r => r._id === id ? { ...r, status: 'Attended', hoursLogged: hours } : r));
+      alert('Attendance marked and hours logged!');
+    } catch (e) { alert('Error marking attendance'); }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const token = JSON.parse(localStorage.getItem('currentUser'))?.token;
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/export/report`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'community-care-report.csv'; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('Export failed'); }
+  };
 
   const f = (key) => (e) => setForm(p => ({ ...p, [key]: e.target.value }));
 
@@ -160,12 +207,13 @@ export default function AdminDashboard({ onBackToHome }) {
 
       {/* Main */}
       <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
-        {tab === 'overview' && <AdminOverview volunteers={volunteers} events={events} campaigns={campaigns} beneficiaries={beneficiaries} adminName={adminName}/>}
+        {tab === 'overview' && <AdminOverview volunteers={volunteers} events={events} campaigns={campaigns} beneficiaries={beneficiaries} adminName={adminName} registrations={registrations}/>}
         {tab === 'volunteers' && <AdminVolunteers volunteers={volunteers} onToggle={toggleVolunteer}/>}
         {tab === 'events' && <AdminEvents events={events} onNew={() => { setForm({}); setModal('event'); }}/>}
         {tab === 'campaigns' && <AdminCampaigns campaigns={campaigns} onNew={() => { setForm({}); setModal('campaign'); }}/>}
         {tab === 'beneficiaries' && <AdminBeneficiaries beneficiaries={beneficiaries} onNew={() => { setForm({}); setModal('beneficiary'); }}/>}
-        {tab === 'reports' && <AdminReports volunteers={volunteers} events={events} campaigns={campaigns}/>}
+        {tab === 'registrations' && <AdminRegistrations registrations={registrations} onApprove={handleApprove} onAttendance={handleAttendance}/>}
+        {tab === 'reports' && <AdminReports volunteers={volunteers} events={events} campaigns={campaigns} onExport={handleExportCSV}/>}
       </main>
 
       {/* Modals */}
@@ -402,13 +450,13 @@ function AdminBeneficiaries({ beneficiaries, onNew }) {
   );
 }
 
-function AdminReports({ volunteers, events, campaigns }) {
+function AdminReports({ volunteers, events, campaigns, onExport }) {
   const totalHours = volunteers.reduce((s, v) => s + v.hours, 0);
   const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
   return (
     <div>
       <SectionHeader title="Reports & Analytics" sub="Export operational summaries and impact reports."
-        action={<button onClick={() => alert('Exporting CSV…')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: `1.5px solid ${C.border}`, background: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 13.5, cursor: 'pointer', color: C.text }}><Icon d={ICONS.download} size={16} color={C.muted}/> Export CSV</button>}
+        action={<button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: `1.5px solid ${C.border}`, background: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 13.5, cursor: 'pointer', color: C.text }}><Icon d={ICONS.download} size={16} color={C.muted}/> Export CSV</button>}
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
         {[{ label: 'Total Volunteer Hours', value: totalHours + ' hrs' }, { label: 'Events Organized', value: events.length }, { label: 'Total Raised', value: `₹${totalRaised.toLocaleString()}` }, { label: 'Active Campaigns', value: campaigns.length }].map((s, i) => (
@@ -424,6 +472,64 @@ function AdminReports({ volunteers, events, campaigns }) {
           Over this quarter, Community Care Portal mobilized <strong>12,400+ volunteers</strong> across <strong>840 events</strong>, raising over <strong>₹2.3 Crores</strong> for verified humanitarian programs. <strong>1,250+ beneficiaries</strong> received direct assistance.
         </p>
         <button style={{ marginTop: 16, background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Download Full Report (PDF)</button>
+      </Card>
+    </div>
+  );
+}
+
+function AdminRegistrations({ registrations, onApprove, onAttendance }) {
+  const [hoursInput, setHoursInput] = useState({});
+
+  return (
+    <div>
+      <SectionHeader title="Volunteer Registrations" sub="Approve, reject or mark attendance for volunteer event registrations."/>
+      <Card>
+        {registrations.length === 0 ? (
+          <p style={{ color: C.muted, fontSize: 13 }}>No registrations yet.</p>
+        ) : (
+          <Table
+            headers={['Volunteer', 'Event', 'Registered On', 'Status', 'Actions']}
+            rows={registrations.map((r, i) => (
+              <tr key={r._id || i}>
+                <Td><strong>{r.volunteerName}</strong><div style={{ fontSize: 11.5, color: C.muted }}>{r.volunteerEmail}</div></Td>
+                <Td>{r.eventTitle}</Td>
+                <Td>{new Date(r.createdAt).toLocaleDateString('en-IN')}</Td>
+                <Td>
+                  <Badge
+                    label={r.status}
+                    color={r.status === 'Approved' || r.status === 'Attended' ? 'green' : r.status === 'Rejected' ? 'red' : 'yellow'}
+                  />
+                </Td>
+                <Td>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {r.status === 'Pending' && (
+                      <>
+                        <ActionBtn label="Approve" color={C.green} onClick={() => onApprove(r._id, 'Approved')}/>
+                        <ActionBtn label="Reject" color="#dc2626" onClick={() => onApprove(r._id, 'Rejected')}/>
+                      </>
+                    )}
+                    {r.status === 'Approved' && (
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input
+                          type="number"
+                          placeholder="hrs"
+                          min="0.5"
+                          value={hoursInput[r._id] || ''}
+                          onChange={e => setHoursInput(p => ({ ...p, [r._id]: e.target.value }))}
+                          style={{ width: 60, padding: '5px 8px', border: `1.5px solid ${C.border}`, borderRadius: 6, fontSize: 12 }}
+                        />
+                        <ActionBtn label="Mark Attended" color={C.green} onClick={() => onAttendance(r._id, Number(hoursInput[r._id]) || 0)}/>
+                      </div>
+                    )}
+                    {r.status === 'Attended' && (
+                      <span style={{ fontSize: 12, color: C.muted }}>{r.hoursLogged} hrs logged</span>
+                    )}
+                  </div>
+                </Td>
+              </tr>
+            ))}
+          />
+        )}
       </Card>
     </div>
   );
