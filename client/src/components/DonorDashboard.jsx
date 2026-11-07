@@ -96,9 +96,9 @@ export default function DonorDashboard({ onBackToHome }) {
   const totalDonated = receipts.reduce((s, r) => s + r.amount, 0);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg, overflow: 'hidden', width: '100%' }}>
       {/* Sidebar */}
-      <aside style={{ width: 220, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+      <aside style={{ width: 200, minWidth: 200, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg>
@@ -126,7 +126,7 @@ export default function DonorDashboard({ onBackToHome }) {
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+      <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
         {tab === 'dashboard' && <DonorOverview userName={userName} totalDonated={totalDonated} campaigns={campaigns} receipts={receipts} openCheckout={openCheckout} onViewCampaigns={() => setTab('campaigns')} onViewReceipts={() => setTab('receipts')}/>}
         {tab === 'campaigns' && <DonorCampaigns campaigns={campaigns} openCheckout={openCheckout}/>}
         {tab === 'receipts' && <DonorReceipts receipts={receipts} loading={loading}/>}
@@ -168,7 +168,7 @@ function DonorOverview({ userName, totalDonated, campaigns, receipts, openChecko
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16, marginBottom: 20 }}>
         {[
           { label: 'Total Donated', value: `₹${totalDonated.toLocaleString()}`, badge: '80G Eligible', icon: ICONS.rupee },
           { label: 'Campaigns Supported', value: campaigns.length, badge: 'Active', icon: ICONS.campaigns },
@@ -193,7 +193,7 @@ function DonorOverview({ userName, totalDonated, campaigns, receipts, openChecko
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.navy }}>Active Campaigns</h3>
           <button onClick={onViewCampaigns} style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 6, padding: '5px 14px', fontSize: 12, color: C.muted, cursor: 'pointer' }}>View All</button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18 }}>
           {campaigns.map(c => {
             const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
             return (

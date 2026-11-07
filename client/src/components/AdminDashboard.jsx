@@ -176,9 +176,9 @@ export default function AdminDashboard({ onBackToHome }) {
   const toggleVolunteer = (id) => setVolunteers(p => p.map(v => v.id === id ? { ...v, status: v.status === 'Active' ? 'Suspended' : 'Active' } : v));
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg, overflow: 'hidden', width: '100%' }}>
       {/* Sidebar */}
-      <aside style={{ width: 220, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+      <aside style={{ width: 200, minWidth: 200, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg>
@@ -206,7 +206,7 @@ export default function AdminDashboard({ onBackToHome }) {
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+      <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
         {tab === 'overview' && <AdminOverview volunteers={volunteers} events={events} campaigns={campaigns} beneficiaries={beneficiaries} adminName={adminName} registrations={registrations}/>}
         {tab === 'volunteers' && <AdminVolunteers volunteers={volunteers} onToggle={toggleVolunteer}/>}
         {tab === 'events' && <AdminEvents events={events} onNew={() => { setForm({}); setModal('event'); }}/>}
@@ -298,7 +298,7 @@ function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName
         <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Here's your platform overview for today.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16, marginBottom: 20 }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -311,7 +311,7 @@ function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         <Card style={{ marginBottom: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 16 }}>Pending Approvals</div>
           {volunteers.filter(v => v.status === 'Pending').map((v, i) => (
@@ -458,7 +458,7 @@ function AdminReports({ volunteers, events, campaigns, onExport }) {
       <SectionHeader title="Reports & Analytics" sub="Export operational summaries and impact reports."
         action={<button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: `1.5px solid ${C.border}`, background: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 13.5, cursor: 'pointer', color: C.text }}><Icon d={ICONS.download} size={16} color={C.muted}/> Export CSV</button>}
       />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16, marginBottom: 20 }}>
         {[{ label: 'Total Volunteer Hours', value: totalHours + ' hrs' }, { label: 'Events Organized', value: events.length }, { label: 'Total Raised', value: `₹${totalRaised.toLocaleString()}` }, { label: 'Active Campaigns', value: campaigns.length }].map((s, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: C.navy }}>{s.value}</div>

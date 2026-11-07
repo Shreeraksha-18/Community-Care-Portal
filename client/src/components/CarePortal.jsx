@@ -133,9 +133,9 @@ export default function CarePortal({ onBackToHome }) {
   const handleLogout = () => { localStorage.removeItem('currentUser'); navigate('/'); };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg, overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
       {/* ── Sidebar ── */}
-      <aside style={{ width: 220, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+      <aside style={{ width: 200, minWidth: 200, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -169,7 +169,7 @@ export default function CarePortal({ onBackToHome }) {
       </aside>
 
       {/* ── Main ── */}
-      <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+      <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
@@ -215,7 +215,7 @@ function DashboardView({ events, activities, loading, onRegister, onTabChange })
   return (
     <div>
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14, marginBottom: 20 }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -231,7 +231,7 @@ function DashboardView({ events, activities, loading, onRegister, onTabChange })
       </div>
 
       {/* Chart + Goal */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
@@ -277,7 +277,7 @@ function DashboardView({ events, activities, loading, onRegister, onTabChange })
       </div>
 
       {/* Events + Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
         <Card style={{ marginBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.navy }}>Upcoming Events</div>

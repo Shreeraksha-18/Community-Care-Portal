@@ -50,7 +50,30 @@ app.use('/api/events', eventRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/registrations', registrationRoutes);
 
-// Health Check API Route
+// ONE-TIME admin seed route (auto-disabled after first use)
+app.post('/api/seed/admin', async (req, res) => {
+  try {
+    const { default: User } = await import('./models/User.js');
+    const { secret } = req.body;
+    if (secret !== 'communitycare_seed_2026') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+    const exists = await User.findOne({ email: 'admin@communitycare.org' });
+    if (exists) {
+      return res.json({ success: true, message: 'Admin already exists', email: exists.email });
+    }
+    const admin = await User.create({
+      name: 'Admin',
+      email: 'admin@communitycare.org',
+      password: 'Admin@1234',
+      role: 'admin',
+      phone: '9999999999'
+    });
+    res.json({ success: true, message: 'Admin created!', email: admin.email });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
