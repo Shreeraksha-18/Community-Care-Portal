@@ -3,8 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
 const C = {
-  greenLight: '#dcfce7', greenBg: '#f0fdf4', bg: '#f4f6f5', card: '#ffffff',
-  border: '#e5e7eb', text: '#111827', muted: '#6b7280', navy: '#0a3d24',
+  sidebar: '#0a3d24',
+  sidebarActive: '#16a34a',
+  green: '#16a34a',
+  greenDark: '#0f6b3f',
+  greenLight: '#dcfce7',
+  greenBg: '#f0fdf4',
+  bg: '#f4f6f5',
+  card: '#ffffff',
+  border: '#e5e7eb',
+  text: '#111827',
+  muted: '#6b7280',
+  navy: '#0a3d24',
 };
 
 function Icon({ d, size = 16, color = 'currentColor' }) {
