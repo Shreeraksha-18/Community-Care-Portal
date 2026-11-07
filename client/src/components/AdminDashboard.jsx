@@ -1,708 +1,430 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import API from '../services/api';
 
-const BRAND_NAVY = '#0e1626';
-const ACCENT_GREEN = '#16995a';
-const GREEN_DARK = '#0f6b3f';
-const GREEN_LIGHT = '#e3f5ea';
-const LINE_COLOR = '#eaecf0';
-const MUTED_TEXT = '#667085';
+const C = {
+  sidebar: '#0a3d24', sidebarActive: '#16a34a', green: '#16a34a', greenDark: '#0f6b3f',
+  greenLight: '#dcfce7', greenBg: '#f0fdf4', bg: '#f4f6f5', card: '#ffffff',
+  border: '#e5e7eb', text: '#111827', muted: '#6b7280', navy: '#0a3d24',
+};
 
-const INITIAL_VOLUNTEERS = [
-  { id: 1, name: 'Priya Sharma', email: 'priya@seva.org', hours: 128, status: 'Active' },
-  { id: 2, name: 'Ishaan Kapoor', email: 'ishaan@helpage.org', hours: 64, status: 'Active' },
-  { id: 3, name: 'Ananya Roy', email: 'ananya@ecocare.org', hours: 42, status: 'Active' }
+function Icon({ d, size = 16, color = 'currentColor' }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{Array.isArray(d) ? d.map((p, i) => <path key={i} d={p}/>) : <path d={d}/>}</svg>;
+}
+
+const ICONS = {
+  overview: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  volunteers: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  events: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18',
+  campaigns: 'M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z',
+  beneficiaries: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  reports: 'M4 20V10m6 10V4m6 16v-7',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  plus: 'M12 5v14M5 12h14',
+  download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+  check: 'M20 6L9 17l-5-5',
+  clock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 6v6l4 2',
+  activity: 'M22 12h-4l-3 9L9 3l-3 9H2',
+};
+
+const NAV = [
+  { key: 'overview', label: 'Dashboard', icon: ICONS.overview },
+  { key: 'volunteers', label: 'Manage Volunteers', icon: ICONS.volunteers },
+  { key: 'events', label: 'Manage Events', icon: ICONS.events },
+  { key: 'campaigns', label: 'Manage Campaigns', icon: ICONS.campaigns },
+  { key: 'beneficiaries', label: 'Beneficiaries', icon: ICONS.beneficiaries },
+  { key: 'reports', label: 'Reports & Analytics', icon: ICONS.reports },
 ];
 
-const INITIAL_EVENTS = [
-  { id: 1, name: 'City Food Drive', category: 'Community', date: '2026-07-12', location: 'Mumbai' },
-  { id: 2, name: 'Coastal Cleanup Campaign', category: 'Environment', date: '2026-07-19', location: 'Juhu Beach' }
+const INIT_VOLUNTEERS = [
+  { id: 1, name: 'Priya Sharma', email: 'priya@seva.org', phone: '9876543210', hours: 128, events: 12, status: 'Active' },
+  { id: 2, name: 'Ishaan Kapoor', email: 'ishaan@helpage.org', phone: '9876543211', hours: 64, events: 8, status: 'Active' },
+  { id: 3, name: 'Ananya Roy', email: 'ananya@ecocare.org', phone: '9876543212', hours: 42, events: 5, status: 'Active' },
+  { id: 4, name: 'Rohan Mehta', email: 'rohan@ngo.org', phone: '9876543213', hours: 20, events: 3, status: 'Pending' },
 ];
 
-const INITIAL_CAMPAIGNS = [
+const INIT_EVENTS = [
+  { id: 1, title: 'City Food Drive', category: 'Community', date: '2026-07-12', location: 'City Center, Mumbai', spots: 30, registered: 18, status: 'Published' },
+  { id: 2, title: 'Coastal Cleanup Campaign', category: 'Environment', date: '2026-07-19', location: 'Juhu Beach, Mumbai', spots: 40, registered: 22, status: 'Published' },
+  { id: 3, title: 'School Supplies Drive', category: 'Education', date: '2026-07-26', location: 'Dharavi School', spots: 25, registered: 10, status: 'Upcoming' },
+];
+
+const INIT_CAMPAIGNS = [
   { id: 1, title: 'City Hunger Alleviation Drive', category: 'Food Relief', goal: 100000, raised: 85000 },
-  { id: 2, title: 'Rural School Supplies Kit', category: 'Education', goal: 50000, raised: 30000 }
+  { id: 2, title: 'Rural School Supplies Kit', category: 'Education', goal: 50000, raised: 30000 },
+  { id: 3, title: 'Coastal Ocean Preservation', category: 'Environment', goal: 40000, raised: 18000 },
 ];
 
-const INITIAL_BENEFICIARIES = [
-  { id: 1, name: 'Dharavi Primary Students Kit', supportType: 'Education Supplies', location: 'Mumbai', status: 'Assisted' },
-  { id: 2, name: 'Coastal Fishermen Community Welfare', supportType: 'Disaster Relief', location: 'Versova', status: 'In Progress' }
+const INIT_BENEFICIARIES = [
+  { id: 1, name: 'Dharavi Primary Students Kit', category: 'Education Supplies', location: 'Mumbai', status: 'Assisted' },
+  { id: 2, name: 'Coastal Fishermen Community', category: 'Disaster Relief', location: 'Versova', status: 'In Progress' },
+  { id: 3, name: 'Andheri Food Bank', category: 'Food Support', location: 'Andheri', status: 'Assisted' },
 ];
+
+function Card({ children, style = {} }) {
+  return <div style={{ background: C.card, borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20, ...style }}>{children}</div>;
+}
+
+function Modal({ title, onClose, onSubmit, children }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#fff', width: 500, maxWidth: '92vw', borderRadius: 16, padding: 28, position: 'relative', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 40px rgba(0,0,0,0.2)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 20, color: C.muted, cursor: 'pointer' }}>✕</button>
+        <h3 style={{ margin: '0 0 20px', fontSize: 17, color: C.navy }}>{title}</h3>
+        <form onSubmit={onSubmit}>{children}<button type="submit" style={{ width: '100%', background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '12px', fontWeight: 600, fontSize: 14, cursor: 'pointer', marginTop: 8 }}>Save</button></form>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, ...props }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{label}</label>
+      <input {...props} style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, outline: 'none', boxSizing: 'border-box' }}/>
+    </div>
+  );
+}
 
 export default function AdminDashboard({ onBackToHome }) {
   const navigate = useNavigate();
-  const [adminName, setAdminName] = useState('Admin Console');
-  const [volunteers, setVolunteers] = useState(INITIAL_VOLUNTEERS);
-  const [events, setEvents] = useState(INITIAL_EVENTS);
-  const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
-  const [beneficiaries, setBeneficiaries] = useState(INITIAL_BENEFICIARIES);
-
-  // Modals state
-  const [activeModal, setActiveModal] = useState(null); // 'event', 'campaign', 'beneficiary'
-  const [newEvent, setNewEvent] = useState({ name: '', category: '', date: '', location: '' });
-  const [newCampaign, setNewCampaign] = useState({ title: '', category: '', goal: '' });
-  const [newBeneficiary, setNewBeneficiary] = useState({ name: '', supportType: '', location: '' });
+  const [tab, setTab] = useState('overview');
+  const [adminName, setAdminName] = useState('Admin');
+  const [adminEmail, setAdminEmail] = useState('admin@communitycare.org');
+  const [volunteers, setVolunteers] = useState(INIT_VOLUNTEERS);
+  const [events, setEvents] = useState(INIT_EVENTS);
+  const [campaigns, setCampaigns] = useState(INIT_CAMPAIGNS);
+  const [beneficiaries, setBeneficiaries] = useState(INIT_BENEFICIARIES);
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState({});
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('currentUser'));
-      if (saved && saved.name) setAdminName(saved.name);
+      const u = JSON.parse(localStorage.getItem('currentUser'));
+      if (u?.name) setAdminName(u.name);
+      if (u?.email) setAdminEmail(u.email);
     } catch (e) {}
   }, []);
 
-  const handleCreateEvent = (e) => {
+  const f = (key) => (e) => setForm(p => ({ ...p, [key]: e.target.value }));
+
+  const createEvent = (e) => {
     e.preventDefault();
-    if (!newEvent.name) return;
-    setEvents([...events, { ...newEvent, id: Date.now() }]);
-    setNewEvent({ name: '', category: '', date: '', location: '' });
-    setActiveModal(null);
-    alert('New community event published successfully!');
+    setEvents(p => [...p, { id: Date.now(), ...form, spots: Number(form.spots) || 30, registered: 0, status: 'Upcoming' }]);
+    setModal(null); setForm({});
   };
 
-  const handleCreateCampaign = (e) => {
+  const createCampaign = (e) => {
     e.preventDefault();
-    if (!newCampaign.title) return;
-    setCampaigns([...campaigns, { ...newCampaign, id: Date.now(), raised: 0, goal: Number(newCampaign.goal) }]);
-    setNewCampaign({ title: '', category: '', goal: '' });
-    setActiveModal(null);
-    alert('Fundraising campaign created successfully!');
+    setCampaigns(p => [...p, { id: Date.now(), ...form, goal: Number(form.goal), raised: 0 }]);
+    setModal(null); setForm({});
   };
 
-  const handleCreateBeneficiary = (e) => {
+  const createBeneficiary = (e) => {
     e.preventDefault();
-    if (!newBeneficiary.name) return;
-    setBeneficiaries([...beneficiaries, { ...newBeneficiary, id: Date.now(), status: 'Assisted' }]);
-    setNewBeneficiary({ name: '', supportType: '', location: '' });
-    setActiveModal(null);
-    alert('Beneficiary record stored securely.');
+    setBeneficiaries(p => [...p, { id: Date.now(), ...form, status: 'Assisted' }]);
+    setModal(null); setForm({});
   };
+
+  const toggleVolunteer = (id) => setVolunteers(p => p.map(v => v.id === id ? { ...v, status: v.status === 'Active' ? 'Suspended' : 'Active' } : v));
 
   return (
-    <div style={styles.layout}>
-      {/* SIDEBAR */}
-      <aside style={styles.sidebar}>
-        <div>
-          <div style={styles.brand}>
-            <div style={styles.brandIcon}>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/>
-              </svg>
-            </div>
-            Community Care
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter','Manrope',sans-serif", background: C.bg }}>
+      {/* Sidebar */}
+      <aside style={{ width: 220, background: C.sidebar, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg>
           </div>
-
-          <div style={styles.roleBadge}>ADMINISTRATION</div>
-
-          <nav style={styles.nav}>
-            <NavLink to="overview" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              📊 Overview
-            </NavLink>
-            <NavLink to="volunteers" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              👥 Manage Volunteers
-            </NavLink>
-            <NavLink to="events" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              📅 Manage Events
-            </NavLink>
-            <NavLink to="campaigns" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              🎯 Manage Campaigns
-            </NavLink>
-            <NavLink to="beneficiaries" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              🤝 Manage Beneficiaries
-            </NavLink>
-            <NavLink to="reports" style={({ isActive }) => ({ ...styles.navBtn, ...(isActive ? styles.navBtnActive : {}) })}>
-              📈 Reports & Analytics
-            </NavLink>
-          </nav>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>Community Care</span>
         </div>
-
-        <div style={styles.sidebarFooter}>
-          <div style={styles.userInfo}>
-            <div style={styles.avatar}>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div>
-              <strong style={{ display: 'block', fontSize: '0.82rem', color: '#fff' }}>{adminName}</strong>
-              <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>admin@communitycare.org</span>
-            </div>
+        <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', padding: '0 20px 10px', textTransform: 'uppercase' }}>Administration</div>
+          {NAV.map(item => (
+            <button key={item.key} onClick={() => setTab(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 20px', background: tab === item.key ? C.sidebarActive : 'none', border: 'none', color: tab === item.key ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 13.5, cursor: 'pointer', textAlign: 'left', borderRadius: tab === item.key ? '0 8px 8px 0' : 0, marginRight: tab === item.key ? 12 : 0 }}>
+              <Icon d={item.icon} size={16} color={tab === item.key ? '#fff' : 'rgba(255,255,255,0.6)'}/>{item.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: '14px 16px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.green, color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{adminName[0]}</div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{adminName}</div>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{adminEmail}</div>
           </div>
-          <button
-            style={styles.homeBtn}
-            onClick={onBackToHome ? onBackToHome : () => navigate('/')}
-            title="Return to Home"
-          >
-            Home
+          <button onClick={() => { localStorage.removeItem('currentUser'); navigate('/'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' }}>
+            <Icon d={ICONS.logout} size={15} color="rgba(255,255,255,0.5)"/>
           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <main style={styles.main}>
-        <Routes>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route
-            path="overview"
-            element={
-              <AdminOverview
-                adminName={adminName}
-                volunteersCount={volunteers.length}
-                eventsCount={events.length}
-                campaignsCount={campaigns.length}
-                beneficiariesCount={beneficiaries.length}
-              />
-            }
-          />
-          <Route
-            path="volunteers"
-            element={<AdminVolunteers volunteers={volunteers} setVolunteers={setVolunteers} />}
-          />
-          <Route
-            path="events"
-            element={<AdminEvents events={events} onOpenModal={() => setActiveModal('event')} />}
-          />
-          <Route
-            path="campaigns"
-            element={<AdminCampaigns campaigns={campaigns} onOpenModal={() => setActiveModal('campaign')} />}
-          />
-          <Route
-            path="beneficiaries"
-            element={<AdminBeneficiaries beneficiaries={beneficiaries} onOpenModal={() => setActiveModal('beneficiary')} />}
-          />
-          <Route path="reports" element={<AdminReports />} />
-        </Routes>
+      {/* Main */}
+      <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+        {tab === 'overview' && <AdminOverview volunteers={volunteers} events={events} campaigns={campaigns} beneficiaries={beneficiaries} adminName={adminName}/>}
+        {tab === 'volunteers' && <AdminVolunteers volunteers={volunteers} onToggle={toggleVolunteer}/>}
+        {tab === 'events' && <AdminEvents events={events} onNew={() => { setForm({}); setModal('event'); }}/>}
+        {tab === 'campaigns' && <AdminCampaigns campaigns={campaigns} onNew={() => { setForm({}); setModal('campaign'); }}/>}
+        {tab === 'beneficiaries' && <AdminBeneficiaries beneficiaries={beneficiaries} onNew={() => { setForm({}); setModal('beneficiary'); }}/>}
+        {tab === 'reports' && <AdminReports volunteers={volunteers} events={events} campaigns={campaigns}/>}
       </main>
 
-      {/* CREATE EVENT MODAL */}
-      {activeModal === 'event' && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <button style={styles.modalClose} onClick={() => setActiveModal(null)}>✕</button>
-            <h3 style={{ margin: '0 0 16px 0', color: BRAND_NAVY }}>Create New Community Event</h3>
-            <form onSubmit={handleCreateEvent}>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Event Title</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="e.g. Tree Plantation Drive"
-                  value={newEvent.name}
-                  onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Category</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="Environment / Healthcare / Education"
-                  value={newEvent.category}
-                  onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Date</label>
-                <input
-                  type="date"
-                  style={styles.inputField}
-                  value={newEvent.date}
-                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Location</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="City / Area"
-                  value={newEvent.location}
-                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                  required
-                />
-              </div>
-              <button type="submit" style={{ ...styles.btnPrimary, width: '100%', justifyContent: 'center' }}>
-                Publish Event
-              </button>
-            </form>
-          </div>
-        </div>
+      {/* Modals */}
+      {modal === 'event' && (
+        <Modal title="Create New Event" onClose={() => setModal(null)} onSubmit={createEvent}>
+          <Field label="Event Title" placeholder="e.g. Tree Plantation Drive" value={form.title||''} onChange={f('title')} required/>
+          <Field label="Category" placeholder="Community / Environment / Education" value={form.category||''} onChange={f('category')} required/>
+          <Field label="Date" type="date" value={form.date||''} onChange={f('date')} required/>
+          <Field label="Location" placeholder="City / Area" value={form.location||''} onChange={f('location')} required/>
+          <Field label="Total Spots" type="number" placeholder="30" value={form.spots||''} onChange={f('spots')}/>
+        </Modal>
       )}
-
-      {/* CREATE CAMPAIGN MODAL */}
-      {activeModal === 'campaign' && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <button style={styles.modalClose} onClick={() => setActiveModal(null)}>✕</button>
-            <h3 style={{ margin: '0 0 16px 0', color: BRAND_NAVY }}>Create Fundraising Campaign</h3>
-            <form onSubmit={handleCreateCampaign}>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Campaign Title</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="e.g. Clean Drinking Water Initiative"
-                  value={newCampaign.title}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, title: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Category</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="Health / Education / Welfare"
-                  value={newCampaign.category}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, category: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Target Goal (₹)</label>
-                <input
-                  type="number"
-                  style={styles.inputField}
-                  placeholder="100000"
-                  value={newCampaign.goal}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, goal: e.target.value })}
-                  required
-                />
-              </div>
-              <button type="submit" style={{ ...styles.btnPrimary, width: '100%', justifyContent: 'center' }}>
-                Start Campaign
-              </button>
-            </form>
-          </div>
-        </div>
+      {modal === 'campaign' && (
+        <Modal title="Create Fundraising Campaign" onClose={() => setModal(null)} onSubmit={createCampaign}>
+          <Field label="Campaign Title" placeholder="e.g. Clean Drinking Water Initiative" value={form.title||''} onChange={f('title')} required/>
+          <Field label="Category" placeholder="Health / Education / Welfare" value={form.category||''} onChange={f('category')} required/>
+          <Field label="Target Goal (₹)" type="number" placeholder="100000" value={form.goal||''} onChange={f('goal')} required/>
+        </Modal>
       )}
-
-      {/* ADD BENEFICIARY MODAL */}
-      {activeModal === 'beneficiary' && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <button style={styles.modalClose} onClick={() => setActiveModal(null)}>✕</button>
-            <h3 style={{ margin: '0 0 16px 0', color: BRAND_NAVY }}>Add Beneficiary Record</h3>
-            <form onSubmit={handleCreateBeneficiary}>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Beneficiary / Organization</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="e.g. Sunshine Orphanage Children"
-                  value={newBeneficiary.name}
-                  onChange={(e) => setNewBeneficiary({ ...newBeneficiary, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Assistance Type</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="Food Support / Medical Kits / Education"
-                  value={newBeneficiary.supportType}
-                  onChange={(e) => setNewBeneficiary({ ...newBeneficiary, supportType: e.target.value })}
-                  required
-                />
-              </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Location</label>
-                <input
-                  type="text"
-                  style={styles.inputField}
-                  placeholder="District / City"
-                  value={newBeneficiary.location}
-                  onChange={(e) => setNewBeneficiary({ ...newBeneficiary, location: e.target.value })}
-                  required
-                />
-              </div>
-              <button type="submit" style={{ ...styles.btnPrimary, width: '100%', justifyContent: 'center' }}>
-                Save Beneficiary Record
-              </button>
-            </form>
-          </div>
-        </div>
+      {modal === 'beneficiary' && (
+        <Modal title="Add Beneficiary Record" onClose={() => setModal(null)} onSubmit={createBeneficiary}>
+          <Field label="Beneficiary / Organization" placeholder="e.g. Sunshine Orphanage" value={form.name||''} onChange={f('name')} required/>
+          <Field label="Assistance Category" placeholder="Food / Medical / Education" value={form.category||''} onChange={f('category')} required/>
+          <Field label="Location" placeholder="District / City" value={form.location||''} onChange={f('location')} required/>
+        </Modal>
       )}
     </div>
   );
 }
 
-function AdminOverview({ adminName, volunteersCount, eventsCount, campaignsCount, beneficiariesCount }) {
+function SectionHeader({ title, sub, action }) {
   return (
-    <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Platform Executive Overview</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Real-time status across volunteers, events, fundraising campaigns, and beneficiaries.
-          </p>
-        </div>
-      </div>
-
-      <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <div style={styles.statLbl}>Registered Volunteers</div>
-          <div style={styles.statVal}>{volunteersCount + 12400}+</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLbl}>Events Organized</div>
-          <div style={styles.statVal}>{eventsCount + 840}</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLbl}>Fundraising Drives</div>
-          <div style={styles.statVal}>{campaignsCount}</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLbl}>Beneficiaries Supported</div>
-          <div style={styles.statVal}>{beneficiariesCount + 1250}</div>
-        </div>
-      </div>
-
-      <div style={styles.card}>
-        <h3 style={{ margin: '0 0 14px 0' }}>Recent Operational Activities</h3>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Activity</th>
-                <th style={styles.th}>Type</th>
-                <th style={styles.th}>User / Submitter</th>
-                <th style={styles.th}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={styles.td}>City Food Drive Registration Open</td>
-                <td style={styles.td}>Event Coordination</td>
-                <td style={styles.td}>Priya Sharma</td>
-                <td style={styles.td}><span style={styles.badgeSuccess}>Approved</span></td>
-              </tr>
-              <tr>
-                <td style={styles.td}>Volunteer Hours Submission (4 hrs)</td>
-                <td style={styles.td}>Hours Log</td>
-                <td style={styles.td}>Ishaan Kapoor</td>
-                <td style={styles.td}><span style={styles.badgeWarning}>Pending Review</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div><h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.navy }}>{title}</h2>{sub && <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>{sub}</p>}</div>
+      {action}
     </div>
   );
 }
 
-function AdminVolunteers({ volunteers, setVolunteers }) {
-  const handleToggleStatus = (id) => {
-    setVolunteers(volunteers.map(v =>
-      v.id === id ? { ...v, status: v.status === 'Active' ? 'Suspended' : 'Active' } : v
-    ));
+function Table({ headers, rows }) {
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+        <thead><tr>{headers.map(h => <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', borderBottom: `1.5px solid ${C.border}`, background: '#f9fafb', whiteSpace: 'nowrap' }}>{h}</th>)}</tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function Td({ children }) {
+  return <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}`, color: C.text }}>{children}</td>;
+}
+
+function Badge({ label, color = 'green' }) {
+  const colors = {
+    green: { bg: C.greenLight, text: C.green },
+    yellow: { bg: '#fef3c7', text: '#d97706' },
+    red: { bg: '#fee2e2', text: '#dc2626' },
+    blue: { bg: '#eff6ff', text: '#3b82f6' },
   };
+  const col = colors[color] || colors.green;
+  return <span style={{ background: col.bg, color: col.text, fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, display: 'inline-block' }}>{label}</span>;
+}
 
+function ActionBtn({ label, color, onClick }) {
+  return <button onClick={onClick} style={{ padding: '6px 14px', border: `1.5px solid ${color || C.border}`, background: '#fff', color: color || C.text, borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{label}</button>;
+}
+
+function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName }) {
+  const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
+  const stats = [
+    { label: 'Total Volunteers', value: (volunteers.length + 12400).toLocaleString() + '+', badge: '+12 this week', icon: ICONS.volunteers },
+    { label: 'Events Organized', value: (events.length + 840).toLocaleString(), badge: '+3 this month', icon: ICONS.events },
+    { label: 'Total Donations', value: `₹${(totalRaised / 100000).toFixed(1)}L+`, badge: '+₹40K today', icon: ICONS.campaigns },
+    { label: 'Beneficiaries', value: (beneficiaries.length + 1250).toLocaleString() + '+', badge: '+8 this week', icon: ICONS.beneficiaries },
+  ];
   return (
     <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Manage Volunteers</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Review volunteer profiles, total hours logged, and active status.
-          </p>
-        </div>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.navy }}>Good morning, {adminName.split(' ')[0]} 👋</h1>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Here's your platform overview for today.</p>
       </div>
 
-      <div style={styles.card}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Volunteer Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>Total Hours</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {volunteers.map((vol) => (
-                <tr key={vol.id}>
-                  <td style={styles.td}><strong>{vol.name}</strong></td>
-                  <td style={styles.td}>{vol.email}</td>
-                  <td style={styles.td}>{vol.hours} hrs</td>
-                  <td style={styles.td}>
-                    <span style={vol.status === 'Active' ? styles.badgeSuccess : styles.badgeDanger}>
-                      {vol.status}
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    <button
-                      style={{
-                        ...styles.btnOutline,
-                        color: vol.status === 'Active' ? '#dc2626' : '#16995a'
-                      }}
-                      onClick={() => handleToggleStatus(vol.id)}
-                    >
-                      {vol.status === 'Active' ? 'Suspend' : 'Activate'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+        {stats.map((s, i) => (
+          <div key={i} style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: C.greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon d={s.icon} size={18} color={C.green}/></div>
+              <span style={{ background: C.greenLight, color: C.green, fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>{s.badge}</span>
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: C.navy }}>{s.value}</div>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <Card style={{ marginBottom: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 16 }}>Pending Approvals</div>
+          {volunteers.filter(v => v.status === 'Pending').map((v, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.greenLight, color: C.green, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>{v.name[0]}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{v.name}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Volunteer Registration</div>
+              </div>
+              <Badge label="Pending" color="yellow"/>
+            </div>
+          ))}
+          {volunteers.filter(v => v.status === 'Pending').length === 0 && <p style={{ color: C.muted, fontSize: 13 }}>No pending approvals.</p>}
+        </Card>
+
+        <Card style={{ marginBottom: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 16 }}>Recent Activity</div>
+          {[
+            { text: 'City Food Drive — 18 volunteers registered', time: '2h ago', icon: ICONS.events },
+            { text: 'Donation ₹5,000 received for School Supplies', time: 'Yesterday', icon: ICONS.campaigns },
+            { text: 'Ishaan Kapoor logged 4 volunteer hours', time: 'Jul 8', icon: ICONS.clock },
+            { text: 'New volunteer: Rohan Mehta registered', time: 'Jul 7', icon: ICONS.volunteers },
+          ].map((a, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < 3 ? 14 : 0 }}>
+              <div style={{ width: 28, height: 28, background: C.greenLight, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon d={a.icon} size={13} color={C.green}/></div>
+              <div style={{ flex: 1, fontSize: 12.5, color: C.text }}>{a.text}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{a.time}</div>
+            </div>
+          ))}
+        </Card>
       </div>
     </div>
   );
 }
 
-function AdminEvents({ events, onOpenModal }) {
+function AdminVolunteers({ volunteers, onToggle }) {
   return (
     <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Manage Community Events</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Create, coordinate, and review upcoming drives.
-          </p>
-        </div>
-        <button style={styles.btnPrimary} onClick={onOpenModal}>+ Create New Event</button>
-      </div>
-
-      <div style={styles.card}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Event Name</th>
-                <th style={styles.th}>Category</th>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Location</th>
-                <th style={styles.th}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((evt) => (
-                <tr key={evt.id}>
-                  <td style={styles.td}><strong>{evt.name}</strong></td>
-                  <td style={styles.td}>{evt.category}</td>
-                  <td style={styles.td}>{evt.date}</td>
-                  <td style={styles.td}>{evt.location}</td>
-                  <td style={styles.td}><span style={styles.badgeSuccess}>Published</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <SectionHeader title="Manage Volunteers" sub="Review volunteer profiles, hours, and status."/>
+      <Card>
+        <Table
+          headers={['Volunteer', 'Email', 'Hours', 'Events', 'Status', 'Actions']}
+          rows={volunteers.map(v => (
+            <tr key={v.id}>
+              <Td><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><div style={{ width: 32, height: 32, borderRadius: '50%', background: C.greenLight, color: C.green, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>{v.name[0]}</div><div><div style={{ fontWeight: 600 }}>{v.name}</div><div style={{ fontSize: 11.5, color: C.muted }}>{v.phone}</div></div></div></Td>
+              <Td><span style={{ color: C.muted }}>{v.email}</span></Td>
+              <Td><strong>{v.hours} hrs</strong></Td>
+              <Td>{v.events}</Td>
+              <Td><Badge label={v.status} color={v.status === 'Active' ? 'green' : v.status === 'Pending' ? 'yellow' : 'red'}/></Td>
+              <Td><ActionBtn label={v.status === 'Active' ? 'Suspend' : 'Activate'} color={v.status === 'Active' ? '#dc2626' : C.green} onClick={() => onToggle(v.id)}/></Td>
+            </tr>
+          ))}
+        />
+      </Card>
     </div>
   );
 }
 
-function AdminCampaigns({ campaigns, onOpenModal }) {
+function AdminEvents({ events, onNew }) {
   return (
     <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Manage Fundraising Campaigns</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Create and monitor transparent donation initiatives.
-          </p>
-        </div>
-        <button style={styles.btnPrimary} onClick={onOpenModal}>+ Create Campaign</button>
-      </div>
-
-      <div style={styles.card}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Campaign Title</th>
-                <th style={styles.th}>Category</th>
-                <th style={styles.th}>Goal</th>
-                <th style={styles.th}>Raised</th>
-                <th style={styles.th}>Progress</th>
-              </tr>
-            </thead>
-            <tbody>
-              {campaigns.map((c) => {
-                const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
-                return (
-                  <tr key={c.id}>
-                    <td style={styles.td}><strong>{c.title}</strong></td>
-                    <td style={styles.td}>{c.category}</td>
-                    <td style={styles.td}>₹{c.goal.toLocaleString()}</td>
-                    <td style={styles.td}><strong>₹{c.raised.toLocaleString()}</strong></td>
-                    <td style={styles.td}>{pct}% funded</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <SectionHeader title="Manage Events" sub="Create, edit and monitor community drives."
+        action={<button onClick={onNew} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Icon d={ICONS.plus} size={16} color="#fff"/> Create Event</button>}
+      />
+      <Card>
+        <Table
+          headers={['Event', 'Category', 'Date', 'Location', 'Registered', 'Status']}
+          rows={events.map(ev => (
+            <tr key={ev.id}>
+              <Td><strong>{ev.title}</strong></Td>
+              <Td>{ev.category}</Td>
+              <Td>{ev.date}</Td>
+              <Td>{ev.location}</Td>
+              <Td>{ev.registered} / {ev.spots}</Td>
+              <Td><Badge label={ev.status} color={ev.status === 'Published' ? 'green' : 'blue'}/></Td>
+            </tr>
+          ))}
+        />
+      </Card>
     </div>
   );
 }
 
-function AdminBeneficiaries({ beneficiaries, onOpenModal }) {
+function AdminCampaigns({ campaigns, onNew }) {
   return (
     <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Manage Beneficiary Records</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Maintain confidential, access-controlled records of supported groups.
-          </p>
-        </div>
-        <button style={styles.btnPrimary} onClick={onOpenModal}>+ Add Beneficiary</button>
-      </div>
-
-      <div style={styles.card}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Beneficiary / Group</th>
-                <th style={styles.th}>Assistance Type</th>
-                <th style={styles.th}>Location</th>
-                <th style={styles.th}>Status</th>
+      <SectionHeader title="Manage Campaigns" sub="Create and monitor fundraising campaigns."
+        action={<button onClick={onNew} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Icon d={ICONS.plus} size={16} color="#fff"/> New Campaign</button>}
+      />
+      <Card>
+        <Table
+          headers={['Campaign', 'Category', 'Goal', 'Raised', 'Progress']}
+          rows={campaigns.map(c => {
+            const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
+            return (
+              <tr key={c.id}>
+                <Td><strong>{c.title}</strong></Td>
+                <Td>{c.category}</Td>
+                <Td>₹{c.goal.toLocaleString()}</Td>
+                <Td><strong style={{ color: C.green }}>₹{c.raised.toLocaleString()}</strong></Td>
+                <Td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, background: C.border, borderRadius: 99, height: 6 }}><div style={{ background: C.green, borderRadius: 99, height: '100%', width: `${pct}%` }}/></div>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: C.navy, minWidth: 36 }}>{pct}%</span>
+                  </div>
+                </Td>
               </tr>
-            </thead>
-            <tbody>
-              {beneficiaries.map((b) => (
-                <tr key={b.id}>
-                  <td style={styles.td}><strong>{b.name}</strong></td>
-                  <td style={styles.td}>{b.supportType}</td>
-                  <td style={styles.td}>{b.location}</td>
-                  <td style={styles.td}><span style={styles.badgeSuccess}>{b.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            );
+          })}
+        />
+      </Card>
     </div>
   );
 }
 
-function AdminReports() {
+function AdminBeneficiaries({ beneficiaries, onNew }) {
   return (
     <div>
-      <div style={styles.headerBar}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800 }}>Reports & Analytics</h1>
-          <p style={{ margin: '4px 0 0 0', color: MUTED_TEXT, fontSize: '0.88rem' }}>
-            Export operational summaries and audit trails.
-          </p>
-        </div>
-        <button style={styles.btnOutline} onClick={() => alert('Exporting quarterly NGO summary as CSV...')}>
-          ⬇ Export Report (CSV)
-        </button>
-      </div>
+      <SectionHeader title="Beneficiary Records" sub="Confidential records of supported individuals and groups."
+        action={<button onClick={onNew} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Icon d={ICONS.plus} size={16} color="#fff"/> Add Beneficiary</button>}
+      />
+      <Card>
+        <Table
+          headers={['Name / Group', 'Assistance Type', 'Location', 'Status']}
+          rows={beneficiaries.map(b => (
+            <tr key={b.id}>
+              <Td><strong>{b.name}</strong></Td>
+              <Td>{b.category}</Td>
+              <Td>{b.location}</Td>
+              <Td><Badge label={b.status} color={b.status === 'Assisted' ? 'green' : 'yellow'}/></Td>
+            </tr>
+          ))}
+        />
+      </Card>
+    </div>
+  );
+}
 
-      <div style={styles.card}>
-        <h3 style={{ margin: '0 0 10px 0' }}>Quarterly Impact Summary</h3>
-        <p style={{ color: MUTED_TEXT, fontSize: '0.9rem', lineHeight: '1.6' }}>
-          Over the past quarter, Community Care Portal helped mobilize 12,400+ volunteers across 840 community events,
-          channeling over ₹2.3 Crores in transparent donations to verified humanitarian and environmental programs.
+function AdminReports({ volunteers, events, campaigns }) {
+  const totalHours = volunteers.reduce((s, v) => s + v.hours, 0);
+  const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
+  return (
+    <div>
+      <SectionHeader title="Reports & Analytics" sub="Export operational summaries and impact reports."
+        action={<button onClick={() => alert('Exporting CSV…')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: `1.5px solid ${C.border}`, background: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 13.5, cursor: 'pointer', color: C.text }}><Icon d={ICONS.download} size={16} color={C.muted}/> Export CSV</button>}
+      />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+        {[{ label: 'Total Volunteer Hours', value: totalHours + ' hrs' }, { label: 'Events Organized', value: events.length }, { label: 'Total Raised', value: `₹${totalRaised.toLocaleString()}` }, { label: 'Active Campaigns', value: campaigns.length }].map((s, i) => (
+          <div key={i} style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: C.navy }}>{s.value}</div>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <Card>
+        <h3 style={{ margin: '0 0 12px', fontSize: 15, color: C.navy }}>Quarterly Impact Summary</h3>
+        <p style={{ color: C.muted, fontSize: 13.5, lineHeight: 1.7, margin: 0 }}>
+          Over this quarter, Community Care Portal mobilized <strong>12,400+ volunteers</strong> across <strong>840 events</strong>, raising over <strong>₹2.3 Crores</strong> for verified humanitarian programs. <strong>1,250+ beneficiaries</strong> received direct assistance.
         </p>
-      </div>
+        <button style={{ marginTop: 16, background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Download Full Report (PDF)</button>
+      </Card>
     </div>
   );
 }
-
-const styles = {
-  layout: { display: 'flex', minHeight: '100vh', backgroundColor: '#f4f7f6', fontFamily: 'Inter, sans-serif' },
-  sidebar: {
-    width: '260px',
-    backgroundColor: BRAND_NAVY,
-    color: '#ffffff',
-    flexShrink: 0,
-    padding: '24px 16px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    minHeight: '100vh',
-    boxSizing: 'border-box'
-  },
-  brand: { display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 800, fontSize: '1.05rem', color: '#ffffff', marginBottom: '24px', padding: '0 8px' },
-  brandIcon: { width: '30px', height: '30px', borderRadius: '8px', backgroundColor: ACCENT_GREEN, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' },
-  roleBadge: { fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.45)', marginBottom: '12px', padding: '0 12px' },
-  nav: { display: 'flex', flexDirection: 'column', gap: '4px' },
-  navBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 14px',
-    borderRadius: '9px',
-    color: 'rgba(255,255,255,0.7)',
-    textDecoration: 'none',
-    fontSize: '0.86rem',
-    fontWeight: 500,
-    transition: 'all 0.2s'
-  },
-  navBtnActive: { backgroundColor: ACCENT_GREEN, color: '#ffffff', fontWeight: 600 },
-  sidebarFooter: {
-    paddingTop: '14px',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '8px'
-  },
-  userInfo: { display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' },
-  avatar: { width: '34px', height: '34px', borderRadius: '50%', backgroundColor: ACCENT_GREEN, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  homeBtn: {
-    backgroundColor: 'transparent',
-    border: '1px solid rgba(255,255,255,0.2)',
-    color: '#fff',
-    borderRadius: '6px',
-    padding: '6px 10px',
-    fontSize: '0.75rem',
-    cursor: 'pointer'
-  },
-  main: { flex: 1, padding: '32px 40px', overflowY: 'auto' },
-  headerBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' },
-  btnPrimary: {
-    padding: '10px 18px',
-    backgroundColor: GREEN_DARK,
-    color: '#ffffff',
-    borderRadius: '9px',
-    fontWeight: 600,
-    fontSize: '0.88rem',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px'
-  },
-  btnOutline: {
-    padding: '7px 12px',
-    border: `1.5px solid ${LINE_COLOR}`,
-    background: '#fff',
-    color: '#101828',
-    borderRadius: '7px',
-    fontWeight: 600,
-    fontSize: '0.8rem',
-    cursor: 'pointer'
-  },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '18px', marginBottom: '24px' },
-  statCard: { background: '#ffffff', border: `1px solid ${LINE_COLOR}`, borderRadius: '14px', padding: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' },
-  statVal: { fontSize: '1.65rem', fontWeight: 800, marginTop: '6px', color: '#101828' },
-  statLbl: { fontSize: '0.8rem', color: MUTED_TEXT },
-  card: { background: '#ffffff', border: `1px solid ${LINE_COLOR}`, borderRadius: '16px', padding: '22px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' },
-  table: { width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' },
-  th: { padding: '12px 14px', background: '#f8fafc', borderBottom: `1.5px solid ${LINE_COLOR}`, color: MUTED_TEXT, fontWeight: 600, fontSize: '0.78rem', textTransform: 'uppercase' },
-  td: { padding: '14px', borderBottom: `1px solid ${LINE_COLOR}`, color: '#101828' },
-  badgeSuccess: { padding: '4px 10px', borderRadius: '999px', fontSize: '0.74rem', fontWeight: 700, display: 'inline-block', background: GREEN_LIGHT, color: GREEN_DARK },
-  badgeWarning: { padding: '4px 10px', borderRadius: '999px', fontSize: '0.74rem', fontWeight: 700, display: 'inline-block', background: '#fef3c7', color: '#d97706' },
-  badgeDanger: { padding: '4px 10px', borderRadius: '999px', fontSize: '0.74rem', fontWeight: 700, display: 'inline-block', background: '#fee2e2', color: '#dc2626' },
-  inputGroup: { marginBottom: '14px' },
-  inputLabel: { display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#344054', marginBottom: '6px' },
-  inputField: { width: '100%', padding: '10px 14px', border: `1.5px solid ${LINE_COLOR}`, borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' },
-  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(11, 18, 32, 0.65)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modal: { background: '#fff', width: '500px', maxWidth: '92vw', borderRadius: '16px', padding: '28px', position: 'relative', boxShadow: '0 16px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' },
-  modalClose: { position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', color: MUTED_TEXT, cursor: 'pointer' }
-};
