@@ -177,9 +177,9 @@ export default function LandingPage() {
           </div>
           <div className="event-grid">
             {[
-              { img: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=80', tag: 'Community', spots: '12 spots left', title: 'City Food Drive', date: 'July 12, 2026', loc: 'City Center, Mumbai' },
-              { img: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=600&q=80', tag: 'Environment', spots: '18 spots left', title: 'Coastal Cleanup Campaign', date: 'July 19, 2026', loc: 'Juhu Beach, Mumbai' },
-              { img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80', tag: 'Education', spots: '30 spots left', title: 'School Supplies Distribution', date: 'July 26, 2026', loc: 'Government School, Andheri' },
+              { img: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=80', tag: 'Community', spots: '12 spots left', title: 'Food Drive at Majestic Center', date: 'July 12, 2026', loc: 'Majestic City Center, Bengaluru, Karnataka' },
+              { img: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=600&q=80', tag: 'Environment', spots: '18 spots left', title: 'Agara Lake Eco Cleanup Campaign', date: 'July 19, 2026', loc: 'Agara Lake, HSR Layout, Bengaluru, Karnataka' },
+              { img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80', tag: 'Education', spots: '30 spots left', title: 'Rural School Supplies & Book Drive', date: 'July 26, 2026', loc: 'Govt Model Primary School, Ramanagara, Karnataka' },
             ].map((ev, i) => (
               <article key={i} className="event-card">
                 <div className={`event-photo photo-${i+1}`}>
@@ -190,7 +190,20 @@ export default function LandingPage() {
                 <div className="event-body">
                   <h3>{ev.title}</h3>
                   <p className="event-meta"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M3 10h18" stroke="currentColor" strokeWidth="1.8"/></svg> {ev.date}</p>
-                  <p className="event-meta"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg> {ev.loc}</p>
+                  <p className="event-meta">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.loc)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open in Google Maps"
+                      style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" fill="none" stroke="#dc2626" strokeWidth="1.8"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="#dc2626" strokeWidth="1.8"/></svg>
+                      <span>{ev.loc}</span>
+                      <span style={{ fontSize: 10, color: '#2563eb' }}>↗</span>
+                    </a>
+                  </p>
                   <button className="btn btn-primary btn-block" onClick={() => openSidebar('signup')}>Register Now</button>
                 </div>
               </article>

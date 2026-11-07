@@ -76,15 +76,15 @@ const INIT_CAMPAIGNS = SHARED_CAMPAIGNS.map(c => ({
 }));
 
 const INIT_BENEFICIARIES = [
-  { id: 1, name: 'Dharavi Primary Students Kit', category: 'Education Supplies', location: 'Mumbai', status: 'Assisted' },
-  { id: 2, name: 'Coastal Fishermen Community', category: 'Disaster Relief', location: 'Versova', status: 'In Progress' },
-  { id: 3, name: 'Andheri Food Bank', category: 'Food Support', location: 'Andheri', status: 'Assisted' },
+  { id: 1, name: 'Ramanagara Govt Primary School Kids', category: 'Education Supplies', location: 'Ramanagara, Karnataka', status: 'Assisted' },
+  { id: 2, name: 'Karwar Coastal Fishermen Welfare', category: 'Disaster Relief', location: 'Karwar, Karnataka', status: 'In Progress' },
+  { id: 3, name: 'Majestic Community Food Bank', category: 'Food Support', location: 'Bengaluru, Karnataka', status: 'Assisted' },
 ];
 
 const INIT_REGISTRATIONS = [
-  { _id: 'reg_1', volunteerName: 'Priya Sharma', volunteerEmail: 'priya@care.org', volunteerPhone: '+91 98765 43210', eventTitle: 'Food Drive at City Center', createdAt: new Date().toISOString(), status: 'Pending', notes: 'Available all day for food packing and kit distribution' },
-  { _id: 'reg_2', volunteerName: 'Ishaan Kapoor', volunteerEmail: 'ishaan@helpage.org', volunteerPhone: '+91 98765 43211', eventTitle: 'Coastal Cleanup Campaign', createdAt: new Date(Date.now() - 86400000).toISOString(), status: 'Approved', notes: 'Certified first-responder' },
-  { _id: 'reg_3', volunteerName: 'Ananya Roy', volunteerEmail: 'ananya@ecocare.org', volunteerPhone: '+91 98765 43212', eventTitle: 'School Supplies Drive', createdAt: new Date(Date.now() - 172800000).toISOString(), status: 'Attended', hoursLogged: 4, notes: 'Education materials lead' },
+  { _id: 'reg_1', volunteerName: 'Priya Sharma', volunteerEmail: 'priya@care.org', volunteerPhone: '+91 98765 43210', eventTitle: 'Food Drive at Majestic Center', createdAt: new Date().toISOString(), status: 'Pending', notes: 'Available all day for food packing and kit distribution' },
+  { _id: 'reg_2', volunteerName: 'Ishaan Kapoor', volunteerEmail: 'ishaan@helpage.org', volunteerPhone: '+91 98765 43211', eventTitle: 'Agara Lake Eco Cleanup Campaign', createdAt: new Date(Date.now() - 86400000).toISOString(), status: 'Approved', notes: 'Certified first-responder' },
+  { _id: 'reg_3', volunteerName: 'Ananya Roy', volunteerEmail: 'ananya@ecocare.org', volunteerPhone: '+91 98765 43212', eventTitle: 'Rural School Supplies & Book Drive', createdAt: new Date(Date.now() - 172800000).toISOString(), status: 'Attended', hoursLogged: 4, notes: 'Education materials lead' },
 ];
 
 function Card({ children, style = {} }) {

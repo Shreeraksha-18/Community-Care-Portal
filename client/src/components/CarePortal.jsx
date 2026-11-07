@@ -65,10 +65,10 @@ const NAV = [
 const DEFAULT_EVENTS = SHARED_EVENTS;
 
 const DEFAULT_ACTIVITIES = [
-  { _id: '1', title: 'Registered for Coastal Cleanup Campaign', type: 'Event Registration', time: '2h ago', icon: ICONS.calendar },
-  { _id: '2', title: 'Logged 4 hours for Food Drive', type: 'Hours Logged', time: 'Yesterday', icon: ICONS.clock },
-  { _id: '3', title: 'Donated ₹500 to Water for All campaign', type: 'Donation', time: 'Jul 8', icon: ICONS.heart },
-  { _id: '4', title: 'Completed onboarding at Dharavi School', type: 'Event Completed', time: 'Jul 5', icon: ICONS.check },
+  { _id: '1', title: 'Registered for Agara Lake Eco Cleanup Campaign', type: 'Event Registration', time: '2h ago', icon: ICONS.calendar },
+  { _id: '2', title: 'Logged 4 hours for Majestic Food Drive', type: 'Hours Logged', time: 'Yesterday', icon: ICONS.clock },
+  { _id: '3', title: 'Donated ₹500 to Rural Karnataka Education', type: 'Donation', time: 'Jul 8', icon: ICONS.heart },
+  { _id: '4', title: 'Completed onboarding at Ramanagara Govt School', type: 'Event Completed', time: 'Jul 5', icon: ICONS.check },
 ];
 
 const MONTHLY_HOURS = [
@@ -1134,9 +1134,9 @@ function ReportsView() {
 
 function BeneficiariesView() {
   const items = [
-    { name: 'Dharavi Primary School Children', category: 'Education', location: 'Mumbai', status: 'Assisted' },
-    { name: 'Coastal Fishermen Community', category: 'Disaster Relief', location: 'Versova', status: 'In Progress' },
-    { name: 'Andheri Food Bank Recipients', category: 'Food Support', location: 'Andheri', status: 'Assisted' },
+    { name: 'Ramanagara Govt Primary School Children', category: 'Education', location: 'Ramanagara, Karnataka', status: 'Assisted' },
+    { name: 'Karwar Coastal Fishermen Welfare Community', category: 'Disaster Relief', location: 'Karwar, Karnataka', status: 'In Progress' },
+    { name: 'Majestic Community Food Bank Recipients', category: 'Food Support', location: 'Bengaluru, Karnataka', status: 'Assisted' },
   ];
   return (
     <div>
