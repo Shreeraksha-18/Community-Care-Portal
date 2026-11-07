@@ -8,7 +8,7 @@ export default function App() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f7f9fa' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f7f9fa', overflow: 'hidden', maxWidth: '100vw' }}>
       <Routes>
         {/* Landing Page with integrated auth drawer */}
         <Route path="/" element={<LandingPage />} />
