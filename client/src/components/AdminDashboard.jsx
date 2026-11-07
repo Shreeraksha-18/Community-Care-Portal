@@ -602,7 +602,19 @@ function AdminEvents({ events, onNew }) {
               <Td><strong>{ev.title}</strong></Td>
               <Td>{ev.category}</Td>
               <Td>{ev.date}</Td>
-              <Td>{ev.location}</Td>
+              <Td>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`Open "${ev.location}" in Google Maps`}
+                  style={{ color: C.greenDark, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 500 }}
+                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                >
+                  📍 {ev.location} ↗
+                </a>
+              </Td>
               <Td>{ev.registered} / {ev.spots}</Td>
               <Td><Badge label={ev.status} color={ev.status === 'Published' ? 'green' : 'blue'}/></Td>
             </tr>

@@ -464,7 +464,15 @@ export default function CarePortal({ onBackToHome }) {
               </div>
               <div style={{ fontSize: 12, color: '#4b5563', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
                 <span>📅 {selectedEvent.fullDate || `${selectedEvent.month || 'JUL'} ${selectedEvent.date}, 2026`}</span>
-                <span>📍 {selectedEvent.location}</span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#2563eb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                  title="View on Google Maps"
+                >
+                  📍 {selectedEvent.location} ↗
+                </a>
                 <span>🏷️ {selectedEvent.category}</span>
               </div>
             </div>
@@ -655,7 +663,17 @@ function DashboardView({ events, activities, loading, myRegistrations = [], onOp
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
-                  <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {ev.location}</div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Open "${ev.location}" in Google Maps`}
+                    style={{ fontSize: 11.5, color: C.muted, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', maxWidth: '100%' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#16a34a'}
+                    onMouseLeave={e => e.currentTarget.style.color = C.muted}
+                  >
+                    📍 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.location}</span> ↗
+                  </a>
                 </div>
                 {regStatus === 'Pending' && (
                   <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#fef3c7', color: '#d97706', whiteSpace: 'nowrap' }}>
@@ -762,11 +780,40 @@ function EventCard({ event, regStatus, onRegister }) {
           <span>{event.fullDate || `${event.month || 'JUL'} ${event.date}, 2026`}</span>
         </div>
 
-        {/* Location */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#4b5563', marginBottom: 18 }}>
-          <Icon d={ICONS.map} size={14} color="#6b7280"/>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.location}</span>
-        </div>
+        {/* Location with Google Maps integration */}
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          title={`Click to open "${event.location}" in Google Maps`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 12.5,
+            color: '#374151',
+            textDecoration: 'none',
+            marginBottom: 18,
+            cursor: 'pointer',
+            maxWidth: '100%',
+            transition: 'color 0.15s ease'
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#16a34a';
+            const s = e.currentTarget.querySelector('.loc-text');
+            if (s) s.style.textDecoration = 'underline';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = '#374151';
+            const s = e.currentTarget.querySelector('.loc-text');
+            if (s) s.style.textDecoration = 'none';
+          }}
+        >
+          <Icon d={ICONS.map} size={15} color="#dc2626"/>
+          <span className="loc-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.location}</span>
+          <span style={{ fontSize: 10, color: '#2563eb', fontWeight: 600, background: '#eff6ff', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Map ↗</span>
+        </a>
 
         {/* Button / Acceptance Status */}
         <div style={{ marginTop: 'auto' }}>
