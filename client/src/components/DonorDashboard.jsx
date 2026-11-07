@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { SHARED_CAMPAIGNS } from '../data/portalData';
 
 const C = {
   sidebar: '#0a3d24', sidebarActive: '#16a34a', green: '#16a34a', greenDark: '#0f6b3f',
@@ -30,11 +31,7 @@ const NAV = [
   { key: 'profile', label: 'Profile & Settings', icon: ICONS.profile },
 ];
 
-const DEFAULT_CAMPAIGNS = [
-  { id: 1, title: 'City Hunger Alleviation Drive', tag: 'Food Relief', raised: 85000, goal: 100000, img: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=500&q=80' },
-  { id: 2, title: 'Rural School Supplies Kit', tag: 'Education', raised: 30000, goal: 50000, img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=500&q=80' },
-  { id: 3, title: 'Coastal Ocean Preservation', tag: 'Environment', raised: 18000, goal: 40000, img: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=500&q=80' },
-];
+const DEFAULT_CAMPAIGNS = SHARED_CAMPAIGNS;
 
 function Card({ children, style = {} }) {
   return <div style={{ background: C.card, borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20, ...style }}>{children}</div>;
@@ -291,7 +288,7 @@ function DonorCampaigns({ campaigns, openCheckout }) {
         <div><h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.navy }}>Browse Campaigns</h2><p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Support verified NGO causes directly.</p></div>
         <input type="text" placeholder="Search campaigns…" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '9px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: 'none', width: 220 }}/>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
         {filtered.map(c => {
           const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
           return (

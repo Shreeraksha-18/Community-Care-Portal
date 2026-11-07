@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { SHARED_EVENTS } from '../data/portalData';
 
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
@@ -61,64 +62,7 @@ const NAV = [
   { key: 'reports', label: 'Reports', icon: ICONS.reports },
 ];
 
-const DEFAULT_EVENTS = [
-  {
-    _id: '1',
-    title: 'Food Drive at City Center',
-    category: 'Community',
-    date: '12',
-    month: 'JUL',
-    year: '2026',
-    fullDate: 'July 12, 2026',
-    location: 'City Center, Mumbai',
-    spotsTotal: 30,
-    spotsLeft: 24,
-    image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80',
-    description: 'Distribute hot meals, dry rations, and care packages to underprivileged families.'
-  },
-  {
-    _id: '2',
-    title: 'Coastal Cleanup Campaign',
-    category: 'Environment',
-    date: '19',
-    month: 'JUL',
-    year: '2026',
-    fullDate: 'July 19, 2026',
-    location: 'Juhu Beach, Mumbai',
-    spotsTotal: 40,
-    spotsLeft: 18,
-    image: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=600&q=80',
-    description: 'Join volunteers to clean plastic waste along the coastline and protect marine life.'
-  },
-  {
-    _id: '3',
-    title: 'School Supplies Drive',
-    category: 'Education',
-    date: '26',
-    month: 'JUL',
-    year: '2026',
-    fullDate: 'July 26, 2026',
-    location: 'Dharavi School, Mumbai',
-    spotsTotal: 25,
-    spotsLeft: 10,
-    image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80',
-    description: 'Provide bags, textbooks, and stationery kits to children for the upcoming academic year.'
-  },
-  {
-    _id: '4',
-    title: 'Community Tree Plantation Drive',
-    category: 'Environment',
-    date: '02',
-    month: 'AUG',
-    year: '2026',
-    fullDate: 'August 2, 2026',
-    location: 'Sanjay Gandhi National Park',
-    spotsTotal: 50,
-    spotsLeft: 35,
-    image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80',
-    description: 'Help plant indigenous saplings and restore green cover in urban fringes.'
-  }
-];
+const DEFAULT_EVENTS = SHARED_EVENTS;
 
 const DEFAULT_ACTIVITIES = [
   { _id: '1', title: 'Registered for Coastal Cleanup Campaign', type: 'Event Registration', time: '2h ago', icon: ICONS.calendar },
@@ -240,8 +184,12 @@ export default function CarePortal({ onBackToHome }) {
             )
           };
         }));
+      } else {
+        setEvents(SHARED_EVENTS);
       }
-    } catch (e) {}
+    } catch (e) {
+      setEvents(SHARED_EVENTS);
+    }
     setLoading(false);
   };
 

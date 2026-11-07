@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
 
 const C = {
   sidebar: '#0a3d24',
@@ -53,17 +54,26 @@ const INIT_VOLUNTEERS = [
   { id: 4, name: 'Rohan Mehta', email: 'rohan@ngo.org', phone: '9876543213', hours: 20, events: 3, status: 'Pending' },
 ];
 
-const INIT_EVENTS = [
-  { id: 1, title: 'City Food Drive', category: 'Community', date: '2026-07-12', location: 'City Center, Mumbai', spots: 30, registered: 18, status: 'Published' },
-  { id: 2, title: 'Coastal Cleanup Campaign', category: 'Environment', date: '2026-07-19', location: 'Juhu Beach, Mumbai', spots: 40, registered: 22, status: 'Published' },
-  { id: 3, title: 'School Supplies Drive', category: 'Education', date: '2026-07-26', location: 'Dharavi School', spots: 25, registered: 10, status: 'Upcoming' },
-];
+const INIT_EVENTS = SHARED_EVENTS.map(e => ({
+  id: e.id,
+  _id: e._id,
+  title: e.title,
+  category: e.category,
+  date: `${e.year}-${e.month === 'JUL' ? '07' : '08'}-${e.date}`,
+  location: e.location,
+  spots: e.spotsTotal,
+  registered: e.registered,
+  status: e.status
+}));
 
-const INIT_CAMPAIGNS = [
-  { id: 1, title: 'City Hunger Alleviation Drive', category: 'Food Relief', goal: 100000, raised: 85000 },
-  { id: 2, title: 'Rural School Supplies Kit', category: 'Education', goal: 50000, raised: 30000 },
-  { id: 3, title: 'Coastal Ocean Preservation', category: 'Environment', goal: 40000, raised: 18000 },
-];
+const INIT_CAMPAIGNS = SHARED_CAMPAIGNS.map(c => ({
+  id: c.id,
+  _id: c._id,
+  title: c.title,
+  category: c.category,
+  goal: c.goal,
+  raised: c.raised
+}));
 
 const INIT_BENEFICIARIES = [
   { id: 1, name: 'Dharavi Primary Students Kit', category: 'Education Supplies', location: 'Mumbai', status: 'Assisted' },
@@ -338,7 +348,18 @@ export default function AdminDashboard({ onBackToHome }) {
 
       {/* Main */}
       <main style={{ flex: 1, padding: '20px 24px', overflowY: 'auto', overflowX: 'hidden', minWidth: 0, boxSizing: 'border-box' }}>
-        {tab === 'overview' && <AdminOverview volunteers={volunteers} events={events} campaigns={campaigns} beneficiaries={beneficiaries} adminName={adminName} registrations={registrations}/>}
+        {tab === 'overview' && (
+          <AdminOverview
+            volunteers={volunteers}
+            events={events}
+            campaigns={campaigns}
+            beneficiaries={beneficiaries}
+            adminName={adminName}
+            registrations={registrations}
+            onApprove={handleApprove}
+            onNavigateTab={changeTab}
+          />
+        )}
         {tab === 'volunteers' && <AdminVolunteers volunteers={volunteers} onToggle={toggleVolunteer}/>}
         {tab === 'events' && <AdminEvents events={events} onNew={() => { setForm({}); setModal('event'); }}/>}
         {tab === 'campaigns' && <AdminCampaigns campaigns={campaigns} onNew={() => { setForm({}); setModal('campaign'); }}/>}
@@ -414,8 +435,10 @@ function ActionBtn({ label, color, onClick }) {
   return <button onClick={onClick} style={{ padding: '6px 14px', border: `1.5px solid ${color || C.border}`, background: '#fff', color: color || C.text, borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{label}</button>;
 }
 
-function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName }) {
+function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName, registrations = [], onApprove, onNavigateTab }) {
   const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
+  const pendingRegistrations = registrations.filter(r => r.status === 'Pending');
+
   const stats = [
     { label: 'Total Volunteers', value: (volunteers.length + 12400).toLocaleString() + '+', badge: '+12 this week', icon: ICONS.volunteers },
     { label: 'Events Organized', value: (events.length + 840).toLocaleString(), badge: '+3 this month', icon: ICONS.events },
@@ -444,18 +467,60 @@ function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         <Card style={{ marginBottom: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 16 }}>Pending Approvals</div>
-          {volunteers.filter(v => v.status === 'Pending').map((v, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.greenLight, color: C.green, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>{v.name[0]}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{v.name}</div>
-                <div style={{ fontSize: 12, color: C.muted }}>Volunteer Registration</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>Pending Approvals</span>
+              {pendingRegistrations.length > 0 && (
+                <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12 }}>
+                  {pendingRegistrations.length}
+                </span>
+              )}
+            </div>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab('registrations')}
+                style={{ background: 'none', border: 'none', color: C.green, fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}
+              >
+                View in Registrations →
+              </button>
+            )}
+          </div>
+
+          {pendingRegistrations.slice(0, 5).map((r, i) => (
+            <div key={r._id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.greenLight, color: C.green, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>
+                  {(r.volunteerName || 'V')[0]}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {r.volunteerName}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {r.eventTitle}
+                  </div>
+                </div>
               </div>
-              <Badge label="Pending" color="yellow"/>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <span style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 12 }}>
+                  Pending
+                </span>
+                {onApprove && (
+                  <button
+                    onClick={() => onApprove(r._id, 'Approved')}
+                    style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                    title="Accept Volunteer"
+                  >
+                    ✓ Accept
+                  </button>
+                )}
+              </div>
             </div>
           ))}
-          {volunteers.filter(v => v.status === 'Pending').length === 0 && <p style={{ color: C.muted, fontSize: 13 }}>No pending approvals.</p>}
+
+          {pendingRegistrations.length === 0 && (
+            <p style={{ color: C.muted, fontSize: 13, margin: '8px 0' }}>🎉 No pending approvals. All registrations accepted!</p>
+          )}
         </Card>
 
         <Card style={{ marginBottom: 0 }}>
