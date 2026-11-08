@@ -785,13 +785,28 @@ img, svg { display: block; max-width: 100%; }
 .auth-input {
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #d0d5dd;
+  border: 1.5px solid #d0d5dd !important;
   border-radius: 9px;
-  font-size: 0.9rem;
-  color: #101828;
+  font-size: 0.92rem;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
   outline: none;
   font-family: var(--font-body);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  color-scheme: light !important;
+}
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+  caret-color: #0f172a !important;
+  border-color: #d0d5dd !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 .auth-input.has-icon {
   padding-left: 38px;

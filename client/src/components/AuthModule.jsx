@@ -314,7 +314,10 @@ const styles = {
     border: '1.5px solid #d0d5dd',
     fontSize: '14px',
     outline: 'none',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
+    colorScheme: 'light'
   },
   submitBtn: {
     padding: '12px',
