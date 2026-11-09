@@ -31,16 +31,30 @@ function HomeRoute() {
 
 // Protected route wrapper:
 // - If not logged in, redirect to "/" (Landing Page / Sign in)
-// - If logged in with another role, redirect to user's assigned role dashboard
+// - Admin routes are STRICTLY reserved for Admin users
+// - Volunteer and Donor routes are cross-accessible (volunteers can also access donor & donate)
+// - Volunteers/Donors can NEVER access admin routes
 function ProtectedRoute({ allowedRole, children }) {
   const user = getLoggedInUser();
   if (!user) {
     return <Navigate to="/" replace />;
   }
-  if (allowedRole && user.role !== allowedRole) {
-    const target = user.role === 'donor' ? '/donor' : user.role === 'admin' ? '/admin' : '/volunteer';
-    return <Navigate to={target} replace />;
+
+  // 1. If route requires Admin, ONLY verified Admin can enter!
+  if (allowedRole === 'admin') {
+    if (user.role !== 'admin') {
+      const fallback = user.role === 'donor' ? '/donor' : '/volunteer';
+      return <Navigate to={fallback} replace />;
+    }
+    return children;
   }
+
+  // 2. If an Admin is logged in, keep them in /admin
+  if (user.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // 3. Both Volunteers and Donors are allowed to access both Volunteer and Donor routes
   return children;
 }
 

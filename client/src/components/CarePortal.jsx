@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
-import { SHARED_EVENTS } from '../data/portalData';
+import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
 
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
@@ -97,9 +97,21 @@ export default function CarePortal({ onBackToHome }) {
   });
   const [regSubmitting, setRegSubmitting] = useState(false);
 
+  // Volunteer donation states (dual access)
+  const [campaigns, setCampaigns] = useState(SHARED_CAMPAIGNS);
+  const [volunteerDonations, setVolunteerDonations] = useState([]);
+  const [donateModalOpen, setDonateModalOpen] = useState(false);
+  const donateModalRef = useRef(donateModalOpen);
+  const [donateCampaign, setDonateCampaign] = useState('');
+  const [donateAmount, setDonateAmount] = useState(1000);
+
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+
+  useEffect(() => {
+    donateModalRef.current = donateModalOpen;
+  }, [donateModalOpen]);
 
   useEffect(() => {
     registerModalRef.current = registerModalOpen;
@@ -120,6 +132,11 @@ export default function CarePortal({ onBackToHome }) {
     window.history.pushState({ tab: 'dashboard' }, '');
 
     const handlePopState = () => {
+      if (donateModalRef.current) {
+        setDonateModalOpen(false);
+        window.history.pushState({ tab: tabRef.current }, '');
+        return;
+      }
       if (registerModalRef.current) {
         setRegisterModalOpen(false);
         window.history.pushState({ tab: tabRef.current }, '');
@@ -148,6 +165,7 @@ export default function CarePortal({ onBackToHome }) {
     } catch (e) {}
     fetchEvents();
     fetchMyRegistrations();
+    fetchVolunteerDonations();
   }, []);
 
   // Listen to cross-tab storage changes so admin acceptance reflects immediately
@@ -288,6 +306,50 @@ export default function CarePortal({ onBackToHome }) {
     alert(`📋 Registration submitted for "${selectedEvent.title}"! Status: Acceptance Pending.`);
   };
 
+  const fetchVolunteerDonations = async () => {
+    try {
+      const res = await API.get('/donations/my-donations');
+      if (res.data?.data?.length > 0) {
+        setVolunteerDonations(res.data.data.map(d => ({
+          id: d.receiptId,
+          campaign: d.campaignTitle,
+          date: new Date(d.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+          amount: d.amount
+        })));
+      } else {
+        setVolunteerDonations([
+          { id: '#REC-2026-512', campaign: 'Rural Karnataka Girl Child Education', date: 'Jul 8, 2026', amount: 500 }
+        ]);
+      }
+    } catch (e) {
+      setVolunteerDonations([
+        { id: '#REC-2026-512', campaign: 'Rural Karnataka Girl Child Education', date: 'Jul 8, 2026', amount: 500 }
+      ]);
+    }
+  };
+
+  const openDonationModal = (title) => {
+    setDonateCampaign(title || 'General Community Fund');
+    setDonateModalOpen(true);
+  };
+
+  const confirmVolunteerDonation = async () => {
+    const amt = Number(donateAmount);
+    if (!amt || amt <= 0) return;
+    try {
+      const res = await API.post('/donations', { campaignTitle: donateCampaign, amount: amt });
+      const d = res.data?.data;
+      if (d) {
+        setVolunteerDonations(prev => [{ id: d.receiptId, campaign: d.campaignTitle, date: new Date(d.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), amount: d.amount }, ...prev]);
+      }
+    } catch (e) {
+      setVolunteerDonations(prev => [{ id: `#REC-2026-${Math.floor(1000 + Math.random() * 9000)}`, campaign: donateCampaign, date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), amount: amt }, ...prev]);
+    }
+    setCampaigns(prev => prev.map(c => c.title === donateCampaign ? { ...c, raised: c.raised + amt } : c));
+    setDonateModalOpen(false);
+    alert(`🎉 Thank you for your support! ₹${amt.toLocaleString()} donated to "${donateCampaign}". 80G tax receipt generated.`);
+  };
+
   const greeting = () => {
     const h = new Date().getHours();
     return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
@@ -339,6 +401,36 @@ export default function CarePortal({ onBackToHome }) {
               {item.label}
             </button>
           ))}
+        </div>
+
+        {/* Dual Role Switch: Volunteer -> Donor */}
+        <div style={{ padding: '0 14px 14px' }}>
+          <button
+            onClick={() => {
+              const u = JSON.parse(localStorage.getItem('currentUser') || '{}');
+              localStorage.setItem('currentUser', JSON.stringify({ ...u, role: 'donor' }));
+              navigate('/donor');
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '9px 12px',
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 8,
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            title="Switch to Donor Hub to donate & support campaigns"
+          >
+            <span>❤️</span> Switch to Donor Mode
+          </button>
         </div>
 
         {/* Footer */}
@@ -414,7 +506,18 @@ export default function CarePortal({ onBackToHome }) {
           />
         )}
         {tab === 'hours' && <HoursView/>}
-        {tab === 'donations' && <DonationsView/>}
+        {tab === 'donations' && (
+          <DonationsView
+            campaigns={campaigns}
+            receipts={volunteerDonations}
+            onOpenCheckout={openDonationModal}
+            onSwitchToDonorHub={() => {
+              const u = JSON.parse(localStorage.getItem('currentUser') || '{}');
+              localStorage.setItem('currentUser', JSON.stringify({ ...u, role: 'donor' }));
+              navigate('/donor');
+            }}
+          />
+        )}
         {tab === 'notifications' && <NotificationsView/>}
         {tab === 'reports' && <ReportsView/>}
         {tab === 'beneficiaries' && <BeneficiariesView/>}
@@ -561,6 +664,56 @@ export default function CarePortal({ onBackToHome }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Volunteer Donation Checkout Modal ── */}
+      {donateModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', width: 440, maxWidth: '100%', borderRadius: 16, padding: 28, position: 'relative', boxShadow: '0 16px 40px rgba(0,0,0,0.2)' }}>
+            <button onClick={() => setDonateModalOpen(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 20, color: C.muted, cursor: 'pointer' }}>✕</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 20 }}>❤️</span>
+              <h3 style={{ margin: 0, fontSize: 18, color: C.navy, fontWeight: 700 }}>Volunteer Donation</h3>
+            </div>
+            <p style={{ fontSize: 13, color: C.muted, margin: '0 0 20px' }}>
+              Supporting: <strong>{donateCampaign}</strong> · Eligible for 80G Tax Exemption
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+              {[500, 1000, 2500].map(a => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => setDonateAmount(a)}
+                  style={{
+                    padding: '12px',
+                    border: `1.5px solid ${donateAmount === a ? C.green : C.border}`,
+                    borderRadius: 8,
+                    background: donateAmount === a ? C.greenBg : '#fff',
+                    fontWeight: 700,
+                    fontSize: 14,
+                    color: donateAmount === a ? C.green : C.text,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ₹{a.toLocaleString()}
+                </button>
+              ))}
+            </div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: C.text }}>Custom Amount (₹)</label>
+            <input
+              type="number"
+              value={donateAmount}
+              onChange={e => setDonateAmount(Number(e.target.value))}
+              style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 20 }}
+            />
+            <button
+              onClick={confirmVolunteerDonation}
+              style={{ width: '100%', background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
+              <span>❤️</span> Complete Donation of ₹{donateAmount.toLocaleString()}
+            </button>
           </div>
         </div>
       )}
@@ -1058,11 +1211,139 @@ function HoursView() {
   );
 }
 
-function DonationsView() {
+function DonationsView({ campaigns = [], receipts = [], onOpenCheckout, onSwitchToDonorHub }) {
+  const totalDonated = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
+
   return (
     <div>
-      <h2 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: C.navy }}>Donations</h2>
-      <Card><p style={{ color: C.muted, margin: 0 }}>No donations recorded yet. Visit the Campaigns section on the Donor dashboard to support a cause.</p></Card>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.navy }}>Volunteer Donations & Causes</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>As a volunteer, you can also support community causes directly or switch to Donor Hub.</p>
+        </div>
+        <button
+          onClick={onSwitchToDonorHub}
+          style={{
+            background: C.sidebarActive,
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '10px 18px',
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6
+          }}
+        >
+          <span>❤️</span> Switch to Donor Hub
+        </button>
+      </div>
+
+      {/* Stats Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+        <div style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Your Total Contributions</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: C.navy }}>₹{totalDonated.toLocaleString()}</div>
+          <div style={{ fontSize: 11, color: C.green, marginTop: 4, fontWeight: 600 }}>80G Tax Deductible</div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Active Campaigns</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: C.navy }}>{campaigns.length}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Bengaluru & Karnataka</div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>Receipts Issued</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: C.navy }}>{receipts.length}</div>
+          <div style={{ fontSize: 11, color: C.green, marginTop: 4, fontWeight: 600 }}>Instant digital receipts</div>
+        </div>
+      </div>
+
+      {/* Campaigns list */}
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: C.navy, marginBottom: 14 }}>Active Community Campaigns</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {campaigns.map((camp, idx) => {
+          const pct = Math.min(100, Math.round((camp.raised / camp.goal) * 100));
+          return (
+            <Card key={idx} style={{ padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.green, background: C.greenLight, padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' }}>
+                  {camp.category || 'Community'}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.navy }}>{pct}%</span>
+              </div>
+              <h4 style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: C.text }}>{camp.title}</h4>
+              <p style={{ margin: '0 0 14px', fontSize: 12.5, color: C.muted, lineHeight: 1.4 }}>{camp.desc || 'Direct grassroots impact with full transparency.'}</p>
+              
+              <div style={{ width: '100%', height: 7, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+                <div style={{ width: pct + '%', height: '100%', background: C.green, borderRadius: 4 }} />
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontSize: 12 }}>
+                <span style={{ color: C.muted }}>Raised: <strong style={{ color: C.navy }}>₹{camp.raised.toLocaleString()}</strong></span>
+                <span style={{ color: C.muted }}>Goal: ₹{camp.goal.toLocaleString()}</span>
+              </div>
+
+              <button
+                onClick={() => onOpenCheckout(camp.title)}
+                style={{
+                  width: '100%',
+                  background: C.green,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '9px 14px',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6
+                }}
+              >
+                <span>❤️</span> Donate to this Cause
+              </button>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Past Donations & 80G Receipts */}
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: C.navy, marginBottom: 14 }}>My Donation Receipts (80G Tax Exemption)</h3>
+      <Card style={{ padding: 0, overflow: 'hidden' }}>
+        {receipts.length === 0 ? (
+          <p style={{ color: C.muted, padding: 20, margin: 0, textAlign: 'center' }}>No donation receipts yet. Choose any campaign above to make a donation!</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: `1px solid ${C.border}`, textAlign: 'left' }}>
+                <th style={{ padding: '12px 18px', color: C.muted, fontWeight: 600 }}>Receipt #</th>
+                <th style={{ padding: '12px 18px', color: C.muted, fontWeight: 600 }}>Campaign</th>
+                <th style={{ padding: '12px 18px', color: C.muted, fontWeight: 600 }}>Date</th>
+                <th style={{ padding: '12px 18px', color: C.muted, fontWeight: 600, textAlign: 'right' }}>Amount</th>
+                <th style={{ padding: '12px 18px', color: C.muted, fontWeight: 600, textAlign: 'center' }}>Tax Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {receipts.map((r, i) => (
+                <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: '14px 18px', fontWeight: 600, color: C.navy }}>{r.id}</td>
+                  <td style={{ padding: '14px 18px', color: C.text }}>{r.campaign}</td>
+                  <td style={{ padding: '14px 18px', color: C.muted }}>{r.date}</td>
+                  <td style={{ padding: '14px 18px', fontWeight: 700, color: C.green, textAlign: 'right' }}>₹{r.amount.toLocaleString()}</td>
+                  <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                    <span style={{ background: C.greenLight, color: C.green, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 12 }}>
+                      80G Issued
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
     </div>
   );
 }

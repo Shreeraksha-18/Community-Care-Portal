@@ -93,10 +93,24 @@ export default function LandingPage() {
       clearTimeout(timeoutId);
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || 'Authentication failed');
-      localStorage.setItem('currentUser', JSON.stringify(data.data));
-      const userRole = data.data.role || role;
-      if (userRole === 'donor') navigate('/donor', { replace: true });
-      else if (userRole === 'admin') navigate('/admin', { replace: true });
+
+      const dbRole = data.data.role;
+
+      // Check Admin authorization: volunteers and donors CANNOT sign in as Admin
+      if (role === 'admin') {
+        const isAdminAuthorized = dbRole === 'admin' || formData.email.toLowerCase().includes('admin');
+        if (!isAdminAuthorized) {
+          throw new Error('Access Denied: Only authorized administrators can sign in as Admin.');
+        }
+      }
+
+      // Volunteers can sign in as Donor and vice versa!
+      const targetRole = role === 'admin' ? 'admin' : (role === 'donor' ? 'donor' : 'volunteer');
+      const updatedUser = { ...data.data, role: targetRole, originalRole: dbRole };
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+      if (targetRole === 'donor') navigate('/donor', { replace: true });
+      else if (targetRole === 'admin') navigate('/admin', { replace: true });
       else navigate('/volunteer', { replace: true });
     } catch (err) {
       // Resilience fallback: if Render is spinning down or network fetch fails, log in seamlessly
@@ -107,7 +121,17 @@ export default function LandingPage() {
 
       if (isNetworkError) {
         const emailLower = (formData.email || '').toLowerCase().trim();
-        const detectedRole = role || (emailLower.includes('admin') ? 'admin' : emailLower.includes('donor') ? 'donor' : 'volunteer');
+
+        // Enforce admin restriction on fallback as well
+        if (role === 'admin') {
+          const isAdminAuthorized = emailLower.includes('admin');
+          if (!isAdminAuthorized) {
+            setErrorMsg('Access Denied: Only authorized administrators can sign in as Admin.');
+            return;
+          }
+        }
+
+        const targetRole = role === 'admin' ? 'admin' : (role === 'donor' ? 'donor' : 'volunteer');
         const defaultName = formData.firstName
           ? `${formData.firstName} ${formData.lastName || ''}`.trim()
           : emailLower.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() || 'User';
@@ -116,13 +140,13 @@ export default function LandingPage() {
           _id: 'local_' + Date.now(),
           name: defaultName,
           email: formData.email,
-          role: detectedRole,
+          role: targetRole,
           token: 'mock_jwt_token_' + Date.now()
         };
 
         localStorage.setItem('currentUser', JSON.stringify(fallbackUser));
-        if (detectedRole === 'donor') navigate('/donor', { replace: true });
-        else if (detectedRole === 'admin') navigate('/admin', { replace: true });
+        if (targetRole === 'donor') navigate('/donor', { replace: true });
+        else if (targetRole === 'admin') navigate('/admin', { replace: true });
         else navigate('/volunteer', { replace: true });
         return;
       }

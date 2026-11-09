@@ -177,6 +177,36 @@ export default function DonorDashboard({ onBackToHome }) {
             </button>
           ))}
         </div>
+        {/* Dual Role Switch: Donor -> Volunteer */}
+        <div style={{ padding: '0 14px 14px' }}>
+          <button
+            onClick={() => {
+              const u = JSON.parse(localStorage.getItem('currentUser') || '{}');
+              localStorage.setItem('currentUser', JSON.stringify({ ...u, role: 'volunteer' }));
+              navigate('/volunteer');
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '9px 12px',
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 8,
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            title="Switch to Volunteer Hub"
+          >
+            <span>🙋</span> Switch to Volunteer Hub
+          </button>
+        </div>
+
         <div style={{ padding: '16px 18px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginTop: 'auto', background: C.sidebar }}>
           <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.green, color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{userName[0]}</div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
