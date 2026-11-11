@@ -210,8 +210,8 @@ export default function DonorDashboard({ onBackToHome }) {
         <div style={{ padding: '16px 18px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginTop: 'auto', background: C.sidebar }}>
           <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.green, color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{userName[0]}</div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</div>
+            <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={userName}>{userName}</div>
+            <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={userEmail}>{userEmail}</div>
           </div>
           <button onClick={() => { localStorage.removeItem('currentUser'); navigate('/'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' }}>
             <Icon d={ICONS.logout} size={15} color="rgba(255,255,255,0.5)"/>
@@ -411,12 +411,46 @@ function DonorProfile({ userName, userEmail }) {
         {[{ label: 'Full Name', value: userName, readOnly: true }, { label: 'Email Address', value: userEmail, readOnly: true }].map((f, i) => (
           <div key={i} style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{f.label}</label>
-            <input defaultValue={f.value} readOnly={f.readOnly} style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, outline: 'none', boxSizing: 'border-box', background: f.readOnly ? '#f9fafb' : '#fff' }}/>
+            <input
+              defaultValue={f.value}
+              readOnly={f.readOnly}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: `1.5px solid ${C.border}`,
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                outline: 'none',
+                boxSizing: 'border-box',
+                background: '#f8fafc',
+                color: '#0f172a',
+                colorScheme: 'light',
+                WebkitTextFillColor: '#0f172a'
+              }}
+            />
           </div>
         ))}
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>PAN Number (For 80G Tax Certificate)</label>
-          <input value={pan} onChange={e => setPan(e.target.value.toUpperCase())} style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 13.5, outline: 'none', boxSizing: 'border-box' }}/>
+          <input
+            value={pan}
+            onChange={e => setPan(e.target.value.toUpperCase())}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              border: `1.5px solid ${C.border}`,
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              outline: 'none',
+              boxSizing: 'border-box',
+              background: '#ffffff',
+              color: '#0f172a',
+              colorScheme: 'light',
+              WebkitTextFillColor: '#0f172a'
+            }}
+          />
         </div>
         <button onClick={() => alert('Profile saved!')} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '11px 24px', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Save Changes</button>
       </Card>
