@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { SHARED_CAMPAIGNS } from '../data/portalData';
@@ -254,7 +254,7 @@ function DonorOverview({ userName, totalDonated, campaigns, receipts, openChecko
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.navy }}>Good morning, {userName.split(' ')[0]} 👋</h1>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.navy }}>Good morning, {userName.split(' ')[0]}</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Thank you for supporting community causes.</p>
         </div>
         <button onClick={() => openCheckout('General Community Fund')} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>

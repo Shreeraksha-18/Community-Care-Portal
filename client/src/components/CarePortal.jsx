@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
@@ -347,7 +347,7 @@ export default function CarePortal({ onBackToHome }) {
     }
     setCampaigns(prev => prev.map(c => c.title === donateCampaign ? { ...c, raised: c.raised + amt } : c));
     setDonateModalOpen(false);
-    alert(`🎉 Thank you for your support! ₹${amt.toLocaleString()} donated to "${donateCampaign}". 80G tax receipt generated.`);
+    alert(` Thank you for your support! ₹${amt.toLocaleString()} donated to "${donateCampaign}". 80G tax receipt generated.`);
   };
 
   const greeting = () => {
@@ -429,7 +429,7 @@ export default function CarePortal({ onBackToHome }) {
             }}
             title="Switch to Donor Hub to donate & support campaigns"
           >
-            <span>❤️</span> Switch to Donor Mode
+            <span></span> Switch to Donor Mode
           </button>
         </div>
 
@@ -451,7 +451,7 @@ export default function CarePortal({ onBackToHome }) {
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.navy, margin: 0 }}>{greeting()}, {userName.split(' ')[0]} 👋</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.navy, margin: 0 }}>{greeting()}, {userName.split(' ')[0]} </h1>
             <p style={{ fontSize: 13, color: C.muted, marginTop: 4, marginBottom: 0 }}>Here's what's happening with your volunteering today.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -566,7 +566,7 @@ export default function CarePortal({ onBackToHome }) {
                 {selectedEvent.title}
               </div>
               <div style={{ fontSize: 12, color: '#4b5563', display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                <span>📅 {selectedEvent.fullDate || `${selectedEvent.month || 'JUL'} ${selectedEvent.date}, 2026`}</span>
+                <span> {selectedEvent.fullDate || `${selectedEvent.month || 'JUL'} ${selectedEvent.date}, 2026`}</span>
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`}
                   target="_blank"
@@ -574,7 +574,7 @@ export default function CarePortal({ onBackToHome }) {
                   style={{ color: '#2563eb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}
                   title="View on Google Maps"
                 >
-                  📍 {selectedEvent.location} ↗
+                  {selectedEvent.location} ↗
                 </a>
                 <span>🏷️ {selectedEvent.category}</span>
               </div>
@@ -674,7 +674,7 @@ export default function CarePortal({ onBackToHome }) {
           <div style={{ background: '#fff', width: 440, maxWidth: '100%', borderRadius: 16, padding: 28, position: 'relative', boxShadow: '0 16px 40px rgba(0,0,0,0.2)' }}>
             <button onClick={() => setDonateModalOpen(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: 20, color: C.muted, cursor: 'pointer' }}>✕</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span style={{ fontSize: 20 }}>❤️</span>
+              <span style={{ fontSize: 20 }}></span>
               <h3 style={{ margin: 0, fontSize: 18, color: C.navy, fontWeight: 700 }}>Volunteer Donation</h3>
             </div>
             <p style={{ fontSize: 13, color: C.muted, margin: '0 0 20px' }}>
@@ -712,7 +712,7 @@ export default function CarePortal({ onBackToHome }) {
               onClick={confirmVolunteerDonation}
               style={{ width: '100%', background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
-              <span>❤️</span> Complete Donation of ₹{donateAmount.toLocaleString()}
+              <span></span> Complete Donation of ₹{donateAmount.toLocaleString()}
             </button>
           </div>
         </div>
@@ -825,7 +825,7 @@ function DashboardView({ events, activities, loading, myRegistrations = [], onOp
                     onMouseEnter={e => e.currentTarget.style.color = '#16a34a'}
                     onMouseLeave={e => e.currentTarget.style.color = C.muted}
                   >
-                    📍 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.location}</span> ↗
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.location}</span> ↗
                   </a>
                 </div>
                 {regStatus === 'Pending' && (
@@ -1237,7 +1237,7 @@ function DonationsView({ campaigns = [], receipts = [], onOpenCheckout, onSwitch
             gap: 6
           }}
         >
-          <span>❤️</span> Switch to Donor Hub
+          <span></span> Switch to Donor Hub
         </button>
       </div>
 
@@ -1303,7 +1303,7 @@ function DonationsView({ campaigns = [], receipts = [], onOpenCheckout, onSwitch
                   gap: 6
                 }}
               >
-                <span>❤️</span> Donate to this Cause
+                <span></span> Donate to this Cause
               </button>
             </Card>
           );
@@ -1430,7 +1430,7 @@ function BeneficiariesView() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 600, color: C.text }}>{b.name}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{b.category} · 📍 {b.location}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{b.category} · {b.location}</div>
             </div>
             <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: b.status === 'Assisted' ? C.greenLight : '#fef3c7', color: b.status === 'Assisted' ? C.green : '#d97706' }}>{b.status}</span>
           </div>

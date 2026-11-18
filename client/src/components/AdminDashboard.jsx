@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
@@ -266,7 +266,7 @@ export default function AdminDashboard({ onBackToHome }) {
     } catch (e) {}
 
     if (status === 'Approved') {
-      alert('✅ Registration Accepted! The volunteer user portal now reflects this approval.');
+      alert(' Registration Accepted! The volunteer user portal now reflects this approval.');
     } else {
       alert(`Registration status updated to ${status}.`);
     }
@@ -470,7 +470,7 @@ function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.navy }}>Good morning, {adminName.split(' ')[0]} 👋</h1>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.navy }}>Good morning, {adminName.split(' ')[0]} </h1>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>Here's your platform overview for today.</p>
       </div>
 
@@ -541,7 +541,7 @@ function AdminOverview({ volunteers, events, campaigns, beneficiaries, adminName
           ))}
 
           {pendingRegistrations.length === 0 && (
-            <p style={{ color: C.muted, fontSize: 13, margin: '8px 0' }}>🎉 No pending approvals. All registrations accepted!</p>
+            <p style={{ color: C.muted, fontSize: 13, margin: '8px 0' }}> No pending approvals. All registrations accepted!</p>
           )}
         </Card>
 
@@ -612,7 +612,7 @@ function AdminEvents({ events, onNew }) {
                   onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                 >
-                  📍 {ev.location} ↗
+                  {ev.location} ↗
                 </a>
               </Td>
               <Td>{ev.registered} / {ev.spots}</Td>
@@ -777,7 +777,7 @@ function AdminRegistrations({ registrations, onApprove, onAttendance }) {
                   ) : null}
                   {r.notes ? (
                     <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.notes}>
-                      📝 "{r.notes}"
+                       "{r.notes}"
                     </div>
                   ) : null}
                 </Td>
