@@ -1208,8 +1208,12 @@ function HoursView() {
                 {e.status === 'Approved' ? (
                   <button
                     onClick={() => {
-                      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                      downloadCertificate({ name: user.name || 'Volunteer', activity: e.title, hours: e.hours, date: e.date, category: e.category });
+                      try {
+                        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                        downloadCertificate({ name: user.name || 'Volunteer', activity: e.title, hours: e.hours, date: e.date, category: e.category });
+                      } catch(err) {
+                        alert('Error generating certificate: ' + err.message);
+                      }
                     }}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: C.green, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                   >
