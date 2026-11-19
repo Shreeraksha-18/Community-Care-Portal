@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
+import { downloadCertificate } from '../utils/generatePDF';
 
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
@@ -1195,7 +1196,7 @@ function HoursView() {
 
       <Card>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
-          <thead><tr>{['Activity', 'Category', 'Hours', 'Date', 'Status'].map(h => <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', borderBottom: `1.5px solid ${C.border}`, background: '#f9fafb' }}>{h}</th>)}</tr></thead>
+          <thead><tr>{['Activity', 'Category', 'Hours', 'Date', 'Status', 'Certificate'].map(h => <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', borderBottom: `1.5px solid ${C.border}`, background: '#f9fafb' }}>{h}</th>)}</tr></thead>
           <tbody>{entries.map((e, i) => (
             <tr key={i}>
               <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}`, fontWeight: 600, color: C.text }}>{e.title}</td>
@@ -1203,6 +1204,22 @@ function HoursView() {
               <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}`, fontWeight: 700, color: C.navy }}>{e.hours} hrs</td>
               <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}`, color: C.muted }}>{e.date}</td>
               <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}` }}><span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: e.status === 'Approved' ? C.greenLight : '#fef3c7', color: e.status === 'Approved' ? C.green : '#d97706' }}>{e.status}</span></td>
+              <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}` }}>
+                {e.status === 'Approved' ? (
+                  <button
+                    onClick={() => {
+                      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                      downloadCertificate({ name: user.name || 'Volunteer', activity: e.title, hours: e.hours, date: e.date, category: e.category });
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: C.green, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Certificate
+                  </button>
+                ) : (
+                  <span style={{ fontSize: 11, color: C.muted }}>Pending approval</span>
+                )}
+              </td>
             </tr>
           ))}</tbody>
         </table>

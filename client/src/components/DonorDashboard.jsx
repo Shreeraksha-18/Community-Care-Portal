@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { SHARED_CAMPAIGNS } from '../data/portalData';
+import { downloadReceipt } from '../utils/generatePDF';
 
 const C = {
   sidebar: '#0a3d24', sidebarActive: '#16a34a', green: '#16a34a', greenDark: '#0f6b3f',
@@ -364,6 +365,19 @@ function DonorCampaigns({ campaigns, openCheckout }) {
 }
 
 function DonorReceipts({ receipts, loading }) {
+  const handleDownload = (r) => {
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    downloadReceipt({
+      receiptId: r.id,
+      donorName: user.name || 'Donor',
+      donorEmail: user.email || '',
+      campaign: r.campaign,
+      amount: r.amount,
+      date: r.date,
+      pan: user.pan || 'Not provided'
+    });
+  };
+
   return (
     <div>
       <h2 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: C.navy }}>Donation History & 80G Receipts</h2>
@@ -381,8 +395,9 @@ function DonorReceipts({ receipts, loading }) {
                 <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}`, fontWeight: 700, color: C.navy }}>₹{r.amount.toLocaleString()}</td>
                 <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}` }}><span style={{ background: C.greenLight, color: C.green, fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>80G Deductible</span></td>
                 <td style={{ padding: '14px', borderBottom: `1px solid ${C.border}` }}>
-                  <button onClick={() => alert(`Downloading receipt ${r.id}`)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: `1.5px solid ${C.border}`, background: '#fff', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', color: C.text }}>
-                    <Icon d={ICONS.download} size={13} color={C.muted}/> Download
+                  <button onClick={() => handleDownload(r)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: C.green, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download Receipt
                   </button>
                 </td>
               </tr>
