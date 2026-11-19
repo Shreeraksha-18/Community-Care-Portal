@@ -5,7 +5,7 @@ import { SHARED_CAMPAIGNS } from '../data/portalData';
 import { downloadReceipt } from '../utils/generatePDF';
 
 const C = {
-  sidebar: '#0a3d24', sidebarActive: '#16a34a', green: '#16a34a', greenDark: '#0f6b3f',
+  sidebar: '#0a3d24', sidebarActive: '#22a65a', green: '#22a65a', greenDark: '#22a65a',
   greenLight: '#dcfce7', greenBg: '#f0fdf4', bg: '#f4f6f5', card: '#ffffff',
   border: '#e5e7eb', text: '#111827', muted: '#6b7280', navy: '#0a3d24',
 };
@@ -204,7 +204,7 @@ export default function DonorDashboard({ onBackToHome }) {
             }}
             title="Switch to Volunteer Hub"
           >
-            <span>🙋</span> Switch to Volunteer Hub
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> Switch to Volunteer Hub
           </button>
         </div>
 

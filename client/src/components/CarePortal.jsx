@@ -7,11 +7,11 @@ import { downloadCertificate } from '../utils/generatePDF';
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
   sidebar: '#0a3d24',
-  sidebarActive: '#16a34a',
+  sidebarActive: '#22a65a',
   sidebarText: 'rgba(255,255,255,0.75)',
   sidebarActiveText: '#ffffff',
-  green: '#16a34a',
-  greenDark: '#0f6b3f',
+  green: '#22a65a',
+  greenDark: '#22a65a',
   greenLight: '#dcfce7',
   greenBg: '#f0fdf4',
   bg: '#f4f6f5',
@@ -430,7 +430,7 @@ export default function CarePortal({ onBackToHome }) {
             }}
             title="Switch to Donor Hub to donate & support campaigns"
           >
-            <span></span> Switch to Donor Mode
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z"/></svg> Switch to Donor Mode
           </button>
         </div>
 
@@ -823,7 +823,7 @@ function DashboardView({ events, activities, loading, myRegistrations = [], onOp
                     rel="noopener noreferrer"
                     title={`Open "${ev.location}" in Google Maps`}
                     style={{ fontSize: 11.5, color: C.muted, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', maxWidth: '100%' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#16a34a'}
+                    onMouseEnter={e => e.currentTarget.style.color = '#22a65a'}
                     onMouseLeave={e => e.currentTarget.style.color = C.muted}
                   >
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.location}</span> ↗
@@ -904,7 +904,7 @@ function EventCard({ event, regStatus, onRegister }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span style={{
             background: '#dcfce7',
-            color: '#16a34a',
+            color: '#22a65a',
             fontSize: 11,
             fontWeight: 700,
             padding: '3px 10px',
@@ -954,7 +954,7 @@ function EventCard({ event, regStatus, onRegister }) {
             transition: 'color 0.15s ease'
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.color = '#16a34a';
+            e.currentTarget.style.color = '#22a65a';
             const s = e.currentTarget.querySelector('.loc-text');
             if (s) s.style.textDecoration = 'underline';
           }}
@@ -976,7 +976,7 @@ function EventCard({ event, regStatus, onRegister }) {
               onClick={onRegister}
               style={{
                 width: '100%',
-                background: '#16a34a',
+                background: '#22a65a',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: 8,
@@ -1019,7 +1019,7 @@ function EventCard({ event, regStatus, onRegister }) {
             <div style={{
               width: '100%',
               background: '#dcfce7',
-              color: '#16a34a',
+              color: '#22a65a',
               border: '1.5px solid #bbf7d0',
               borderRadius: 8,
               padding: '10px',
