@@ -5,7 +5,7 @@ import { SHARED_CAMPAIGNS } from '../data/portalData';
 import { downloadReceipt } from '../utils/generatePDF';
 
 const C = {
-  sidebar: '#0a3d24', sidebarActive: '#22a65a', green: '#22a65a', greenDark: '#22a65a',
+  sidebar: '#0a3d24', sidebarActive: '#0f6b3f', green: '#0f6b3f', greenDark: '#0f6b3f',
   greenLight: '#dcfce7', greenBg: '#f0fdf4', bg: '#f4f6f5', card: '#ffffff',
   border: '#e5e7eb', text: '#111827', muted: '#6b7280', navy: '#0a3d24',
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
@@ -286,7 +286,7 @@ const styles = {
   activeRole: {
     flex: 1,
     padding: '8px',
-    border: '2px solid #16995a',
+    border: '2px solid #0f6b3f',
     backgroundColor: '#f2faf5',
     color: '#0f6b3f',
     fontWeight: 'bold',

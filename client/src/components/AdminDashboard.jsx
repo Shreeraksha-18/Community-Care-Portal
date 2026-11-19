@@ -5,9 +5,9 @@ import { SHARED_EVENTS, SHARED_CAMPAIGNS } from '../data/portalData';
 
 const C = {
   sidebar: '#0a3d24',
-  sidebarActive: '#22a65a',
-  green: '#22a65a',
-  greenDark: '#22a65a',
+  sidebarActive: '#0f6b3f',
+  green: '#0f6b3f',
+  greenDark: '#0f6b3f',
   greenLight: '#dcfce7',
   greenBg: '#f0fdf4',
   bg: '#f4f6f5',

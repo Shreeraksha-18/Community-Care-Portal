@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style.css';
 
@@ -158,7 +158,7 @@ export default function LandingPage() {
   };
 
   const strengthLabel = passStrength <= 1 ? 'Weak' : passStrength <= 2 ? 'Medium' : passStrength <= 3 ? 'Strong' : 'Very Strong';
-  const strengthColor = passStrength <= 1 ? '#ef4444' : passStrength <= 2 ? '#f59e0b' : '#16a34a';
+  const strengthColor = passStrength <= 1 ? '#ef4444' : passStrength <= 2 ? '#f59e0b' : '#0f6b3f';
 
   return (
     <>
@@ -367,7 +367,7 @@ export default function LandingPage() {
         {authMode === 'signin' && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
             {['volunteer', 'donor', 'admin'].map(r => (
-              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: '8px 4px', borderRadius: 8, border: role === r ? '2px solid #16a34a' : '1.5px solid #e5e7eb', background: role === r ? '#f0fdf4' : '#fff', color: role === r ? '#16a34a' : '#6b7280', fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize' }}>
+              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: '8px 4px', borderRadius: 8, border: role === r ? '2px solid #0f6b3f' : '1.5px solid #e5e7eb', background: role === r ? '#f0fdf4' : '#fff', color: role === r ? '#0f6b3f' : '#6b7280', fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize' }}>
                 {r.charAt(0).toUpperCase() + r.slice(1)}
               </button>
             ))}
@@ -384,11 +384,11 @@ export default function LandingPage() {
                     { key: 'volunteer', label: 'Volunteer', sub: 'Give time & skills', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
                     { key: 'donor', label: 'Donor', sub: 'Fund campaigns', icon: 'M12 21s-7-4.35-9.5-8.5C.7 8.6 3 5 6.5 5 9 5 11 6.8 12 8c1-1.2 3-3 5.5-3 3.5 0 5.8 3.6 4 7.5C19 16.65 12 21 12 21Z' },
                   ].map(r => (
-                    <div key={r.key} onClick={() => setRole(r.key)} style={{ border: role === r.key ? '2px solid #16a34a' : '1.5px solid #e5e7eb', borderRadius: 10, padding: '14px 12px', cursor: 'pointer', background: role === r.key ? '#f0fdf4' : '#fff', textAlign: 'center' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, background: role === r.key ? '#16a34a' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                    <div key={r.key} onClick={() => setRole(r.key)} style={{ border: role === r.key ? '2px solid #0f6b3f' : '1.5px solid #e5e7eb', borderRadius: 10, padding: '14px 12px', cursor: 'pointer', background: role === r.key ? '#f0fdf4' : '#fff', textAlign: 'center' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, background: role === r.key ? '#0f6b3f' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={role === r.key ? '#fff' : '#6b7280'} strokeWidth="2"><path d={r.icon}/></svg>
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: role === r.key ? '#16a34a' : '#111827' }}>{r.label}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: role === r.key ? '#0f6b3f' : '#111827' }}>{r.label}</div>
                       <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{r.sub}</div>
                     </div>
                   ))}
@@ -429,7 +429,7 @@ export default function LandingPage() {
           <div className="auth-form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <label style={{ margin: 0 }}>Password</label>
-              {authMode === 'signin' && <a href="#" style={{ fontSize: 12, color: '#16a34a', textDecoration: 'none' }}>Forgot password?</a>}
+              {authMode === 'signin' && <a href="#" style={{ fontSize: 12, color: '#0f6b3f', textDecoration: 'none' }}>Forgot password?</a>}
             </div>
             <div className="input-wrap">
               <input type={showPass ? 'text' : 'password'} className="auth-input has-toggle" placeholder="••••••••••••" value={formData.password} onChange={handleChange('password')} style={{ background: '#ffffff', backgroundColor: '#ffffff', color: '#0f172a', colorScheme: 'light' }} required/>
@@ -462,7 +462,7 @@ export default function LandingPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 16 }}>
                 <input type="checkbox" id="terms" required style={{ marginTop: 2 }}/>
                 <label htmlFor="terms" style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-                  I agree to the <a href="#" style={{ color: '#16a34a', fontWeight: 600 }}>Terms of Service</a> and <a href="#" style={{ color: '#16a34a', fontWeight: 600 }}>Privacy Policy</a> of Community Care
+                  I agree to the <a href="#" style={{ color: '#0f6b3f', fontWeight: 600 }}>Terms of Service</a> and <a href="#" style={{ color: '#0f6b3f', fontWeight: 600 }}>Privacy Policy</a> of Community Care
                 </label>
               </div>
             </>
