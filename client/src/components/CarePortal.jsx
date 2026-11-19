@@ -1428,7 +1428,6 @@ function ReportsView() {
       <Card>
         <h3 style={{ margin: '0 0 12px', fontSize: 15, color: C.navy }}>Volunteer Summary</h3>
         <p style={{ color: C.muted, fontSize: 13.5, lineHeight: 1.7, margin: 0 }}>You have contributed <strong>128 hours</strong> across <strong>24 events</strong> this year, directly impacting <strong>48 lives</strong> in your community. You're ranked <strong>#4</strong> among volunteers this month.</p>
-        <button style={{ marginTop: 16, background: C.green, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Download Report (PDF)</button>
       </Card>
     </div>
   );
